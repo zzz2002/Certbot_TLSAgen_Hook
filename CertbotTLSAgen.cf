@@ -1,0 +1,39 @@
+#
+#
+installPath="/usr/local/bin"	# where we are installed/stored
+#
+#	Which services do we want TLSA records for, services is an array of servics we want TLSA records for
+services=( smtp smtps submission imap sieve dav davical https 
+#
+#
+updateAction="manual"
+#	After the TLSA records have bee created they need tobe added to your DNS system.
+#	the methodes currently available are:
+#		manual		-	the system takes no action. To add the TLSA records to your DNS, you must do the updatethe zone files  manually.
+#
+#		nsupdate	-	the system will attempt to install the TLSA records in your DNS, using nsupdate. In order for this to work 
+#					zones for which you want to use this facility must be capable of dynamic update.
+#
+#
+TLSA_TTL=1800						# TLSA DNS record TTL in seconds (15 minutes)
+TLSA_RemoveDelay=5400					# The interval in seconds between adding new TLSA records and removing the old ones.
+TLSA_AutoRemove=no					# Automatically remove old/replaced TLSA records 
+#
+#	The following parameters will produce 3 1 1 certs
+#
+TLSA_Usage=dane-ee					#	TLSA usage 	also seen as 3 in TLSA records
+TLSA_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
+TLSA_Type=sha-256					#	TLSA type	also seen as 1 in TLSA records
+#
+#
+#	The generated TLSA records are saved in a file. this file is located in the "outputFilepath". 
+#	The name of which  is derived from the "outputFilenameBase" plus a seqeunce number 
+#	using the defaults below would result in a filename of tlsa.0001 for example.
+#
+outputFilepath="/etc/bind/tlsa/example.com"
+outputFilenameBase="tlsa"
+#
+#
+logFile="/var/log/tlsagen.log"				# Name and location of the log file associated with this app
+logOny="no" 						# When running standalone output messages to stdout
+#

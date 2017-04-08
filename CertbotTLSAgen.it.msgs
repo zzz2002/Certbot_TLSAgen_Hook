@@ -1,0 +1,21 @@
+#	Italian
+#	tranlated from Canadian english using Google translatee
+#
+#      message text in as a printf format
+#    number of varaibles expected for this message
+#error Code
+#
+E001 0 Parametro di comando linea 1 o la variabile cercate del \"RENEWED_LINEAGE\" non è stato impostato.
+E002 0 Parametro di comando linea 1 o la variabile cercate del \"RENEWED_LINEAGE\" non è una directory.
+E003 0 Parametro di comando la linea 2 o la variabile cercate del \"RENEWED_DOMAINS\" non è stato impostato.
+E004 1 Impossibile creare il \"%s\" record file TLSA directory
+E005 1 Impossibile impostare proprietario e il gruppo per la directory TLSA \"%s\"
+E006 0 Si prega di specificare un nome di base in cui i record TLSA generati possono essere collocati
+E007 1 La directory \"%s\" non esiste, e non può essere creata.
+W008 1 uso del certificato non valido: %s, inadempiente a dan-ee o 3
+W009 1 valido selettore: %s, come default PKEY o 1
+W010 1 valido tipo corrispondenti: %s, come default sha-256 o 1
+E011 1 Il metodo di aggiornamento DNS \"%s\" non è noto o non è disponibile, passare al default - %s
+I997 3 Un record TLSA è stato generato per il servizio %s utilizzando la porta %s, ospitato da %s
+I998 1 Il tempo trascorso %d ms
+E999 0 un errore sconosciuto si è verificato %s

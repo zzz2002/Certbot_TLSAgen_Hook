@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# -*- mode: sh; -*-
+#
+#Last modified:
+#	2017-04-02
+#	2017-04-07
+if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
+    echo "error: script must run in bash version 4.0 or later"
+    false
+    exit
+fi
+shopt -s extglob   # <--- start using bash features right after version check
+#
+#	dummy function to allow for a updateDNS NOP when manual updating is desired
+#
+exit
+
