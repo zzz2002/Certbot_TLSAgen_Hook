@@ -7,14 +7,18 @@
 E001 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" was not set.
 E002 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" is not a directory.
 E003 0 Command line parameter 2 or the evironment variable \"RENEWED_DOMAINS\" was not set.
-E004 1 Unable to create the TLSA record file directory \"%s\"
-E005 1 Unable to set owner & group for the TLSA directory \"%s\"
-E006 0 Please specify a base name into which the generated TLSA records can be placed
+E004 1 Unable to create the TLSA record file directory \"%s\".
+E005 1 Unable to set owner & group for the TLSA directory \"%s\".
+E006 0 Please specify a base name into which the generated TLSA records can be placed.
 E007 1 The directory \"%s\" does not exist, and could not be created.
-W008 1 Invalid certificate usage: %s, defaulting to dan-ee or 3
-W009 1 Invalid selector: %s, defaulting to pkey or 1
-W010 1 Invalid matching type: %s, defaulting to sha-256 or '
-W011 1 The DNS update method \"%s\" is not known or is unavailable, switching to the default - %s
-I997 3 A TLSA record has been generated for the %s service using port %s, hosted by %s
-I998 1 Elapsed time %d ms
-E999 0 An unknown error has occured %s
+W008 1 Invalid certificate usage: %s, defaulting to dan-ee or 3.
+W009 1 Invalid selector: %s, defaulting to pkey or 1.
+W010 1 Invalid matching type: %s, defaulting to sha-256 or 1.
+W011 2 The DNS update method \"%s\" is not known or is unavailable, switching to the default \"%s\" method.
+I997 3 A TLSA record has been generated for the %s service using port %s, hosted by %s.
+I998 1 Elapsed time %d ms.
+E999 0 An unknown error has occured.
+M001 0 future email message
+x
+x
+

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # -*- mode: sh; -*-
 # Copyright (c) 2017 John L. Allen
 # This program is free software: you can redistribute it and/or modify it under the terms of the 
@@ -34,13 +34,19 @@ declare -a certbotDomains 									# array into which RENEWED_DOMAINS or $2 Doma
 declare -a services=( smtp smtps submission imap sieve dav davical https )			# array of servics we want TLSA records for
 declare -A pseudoSRVrecords									# associative array to be used when SRV records are not available
 
-TLSA_TTL=1800											# TLSA DNS record TTL in seconds 
-TLSA_RemoveDelay=2700										# the interval in seconds between adding new TLSA records and removing the old ones.
-TLSA_AutoRemove=no
+CA_Record=y
+CA_Usage=dane-ca										# CA usage 
+CA_Selector=pkey										# CA selector 
+CA_Type=sha-256											# CA type
 
+TLSA_Record=y
 TLSA_Usage=dane-ee										# TLSA usage 
 TLSA_Selector=pkey										# TLSA selector 
 TLSA_Type=sha-256										# TLSA type
+
+TLSA_TTL=1800											# TLSA DNS record TTL in seconds 
+TLSA_RemoveDelay=2700										# the interval in seconds between adding new TLSA records and removing the old ones.
+TLSA_AutoRemove=no
 
 outputFilepath="/etc/bind/tlsa/example.com"							# where do you want to put the TLSA records, default values
 outputFilenameBase="tlsa"									# base filename for the TLSA records - generated  as base_filename.sequence_number
@@ -50,9 +56,9 @@ logFile="/var/log/A_tlsagen.log"								# logfile name & path
 
 declare -a outputFilenames									# array containing the file names for old and the new TLSA records 
 
-declare -A messagetext										# associative array containing information &  error messages
-    
-normaliseVariables() {
+declare -A messageText										# associative array containing information &  error messages
+
+setupSystem() {
     logOnly="${logOnly,,}"
     TLSA_AutoRemove="${TLSA_AutoRemove,,}"
 
@@ -61,34 +67,50 @@ normaliseVariables() {
     TLSA_Selector="${TLSA_Selector,,}"
     TLSA_Type="${TLSA_Type,,}"
     
+    exec 3>> "$logFile"
 }
+
 outputMessage() {
-    local i											# local version of the error code
-    local pc											# number of vaiables a message expects 
-    local ed
-    local ex											# variable to save un-needed data 
-    i=${1^^}											# set the internal variable to the upper case $1
-    [[ -z "$i" || -z "${messagetext[$i]}" ]] && { ex="$i"; i='E999'; }				# did we get passed an error code and do we have a message for it
-												# no, set the oops,code and save trhe actual code for diags 
-    pc=${messagetext[$i]:0:1}									# yes,get the number of variables needed for this message
-    ed="${@:$(( pc + 2 ))}"									# save the ectra data in a variable,stops the msg repeat
-    [[ -n "$ed" || -n "$ex" ]] && ed=' - '"$ex $ed"						# add the seperator to fron of this data
+    local errorCode												# local version of the error code
+    local msgVars												# number of vaiables a message expects 
+    local extraData												# additional data 
+    local badCode												# variable to save additional data 
+    local xitCode
+    errorCode=${1^^}												# set the internal variable to the upper case $1
+    [[ -z "$errorCode" || -z "${messageText[$errorCode]}" ]] && { badCode="$errorCode"; errorCode='E999'; }	# did we get passed an error code and do we have a message for it
+														# no, set the oops code and save trhe actual code for diags 
+    msgVars=${messageText[$errorCode]:0:1}									# yes,get the number of variables needed for this message
+    extraData="${@:$(( msgVars + 2 ))}"										# save the extra data in a variable, stops the msg repeat
+    [[ -n "$extraData" || -n "$badCode" ]] && extraData=' ** '"$badCode $extraData"				# add the seperator to front of this data
 
-    printf -- "$(date "+%Y-%m-%d %H:%M:%S.%6N") %s - %s ${messagetext[$i]:2}%s\n" "${0##*/}" "$i" "${@:2:$pc}" "$ed" >> "$logFile"
-    [[ ${logOnly:0:1} = @(n|f|0) ]] && printf -- "%s - %s ${messagetext[$i]:2}  \n" "${0##*/}" "$i" "${@:2:$pc}" 1>&2
+    printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" "${@:2:$msgVars}" "$extraData" >&3
+#    [[ ${logOnly:0:1} = @(n|f|0) ]] && printf  "%s - %s ${messageText[$errorCode]:2}  \n" "${0##*/}" "$errorCode" ${@:2:$msgVars} # 2>&1 1>stdout
 
-    case ${i:0:1} in
-	I|W) return 0;;										# for info and warning messages return 0
-	E|F) return 1;;										# for error or fatal return 1
-	*)   exit 3;;										# ooops, don't know what this means, exit 3
+    case ${errorCode:0:1} in
+	I|W) xitCode=0;;											# for info and warning messages return 0
+	E|F) xitCode=1;;											# for error or fatal return 1
+	*)   xitCode=3;;												# ooops, don't know what this means, exit 3
     esac
+    return $xitCode
 }
+
 loadMessages() {
     local aline
+    local i
     while read -r aline; do
-	    if [[ ${aline:0:1} != '#' ]]; then
-		i=${aline:0:4}
-		messagetext[$i]=${aline:5}
+	    if [[ -n $aline ]]; then
+		case ${aline:0:1} in
+		    I|W|E|F)
+			i=${aline:0:4}
+			messageText[$i]=${aline:5}
+		    ;;
+		    M)
+			# email messages to be developed
+		    ;;
+		    *)
+		        #  any thing else is ignored for the moment
+		    ;;
+		esac
 	    fi
     done < "$installPath"/CertbotTLSAgen."$1".msgs
 }
@@ -97,9 +119,9 @@ setLineage() {
 	certbotLineage=$RENEWED_LINEAGE								# Check if either the Certbot environment variables or the command line 
 	[[ ! -z $1 ]] && certbotLineage=$1							# parameters have been set, this may/will depend on how this script is invoked.
 	if [[ -z $certbotLineage ]]; then 							# N.B. The Command line parameter overides the environment variable 
-	    return $(outputMessage e001)							# should they both be present
+	    outputMessage e001;  return $?							# should they both be present
 	elif [[ ! -d $certbotLineage ]]; then
-	    return $(outputMessage e002)
+	    outputMessage e002; return $?
 	fi
 }
 
@@ -107,7 +129,7 @@ setDomains() {
 	certbotDomains=( $RENEWED_DOMAINS )							# Has $2 or the environment variable RENEWED_DOMAINS been set. If more than 
 	[[ ! -z $1 ]] && certbotDomains=( $1 ) 							# one domain is specified they are expected to be in the form of a space 
 	if [[ ${#certbotDomains[@]} -le 0 ]]; then 						# seperated list.
-	    return $(outputMessage e003)
+	    outputMessage e003; return $?
 	fi
 }
 
@@ -121,8 +143,8 @@ setOutputFilenames() {
     local fileCount
 
     if [ ! -d "$1" ]; then 									# Does the directory where we will save TLSA records already exist
-	mkdir -p -m=0770 "$1" || exit $(outputMessage e004 "$1")				# No, create it with owner/group rwx, something goes wrong error 9 & exit
-	chown -R bind:bind "$1" || exit $(outputMessage e005 "$1")				# set the owner & group to bind, something goes awry error 10 & exit
+	mkdir -p -m=0770 "$1" || outputMessage e004 "$1" & return $? 				# No, create it with owner/group rwx, something goes wrong error 9 & exit
+	chown -R bind:bind "$1" || outputMessage e005 "$1" & return $? 				# set the owner & group to bind, something goes awry error 10 & exit
     fi
     if [ -d "$1" ]; then									# is $1 a directory, it should be
 	if [[ ! -z $2 ]]; then									# do we have a second parameter
@@ -138,11 +160,10 @@ setOutputFilenames() {
 	    echo "$newName" "$oldName"								# pass the names back to caller
 	    return 0
 	else
-	    return $(outputMessage e006)							# oops, we didn't get $2, error 5  
+	    outputMessage e006; return $?							# oops, we didn't get $2, error 5  
 	fi
     else
-	return $(outputMessage e007 "$1")							# oops, we don't have a directory, error 4
-	exit
+	outputMessage e007 "$1"; return $?							# oops, we don't have a directory, error 4
     fi
 }
 
@@ -201,7 +222,7 @@ GenerateCertificateDigest() {
     format() {
 	od -vAn -tx1 | tr -d ' \012'								# convert the digest data to a hex string, removing any spaces & CRs
     }
-    ( extract $1 $3 | digest $2 | format )							# generate the digest 
+    ( extract "$1" "$3" | digest "$2" | format )							# generate the digest 
     exit $(( PIPESTATUS[0] | PIPESTATUS[1] | PIPESTATUS[2] ))					# Check the previous step worked
 }
 
@@ -211,7 +232,9 @@ GenerateCertificateDigest() {
 #	for certificate specifice data
 [[ -f /etc/default/CertbotTLSAgen.cf ]] && . /etc/default/CertbotTLSAgen.cf
 
-if [ -f $installPath/CertbotTLSAgen.${LANG%%.*}.msgs ]; then					# Check to see if we have a message file for $LANG else use Canadian english 
+setupSystem											# normalize variable set defaults etc
+
+if [ -f $installPath/CertbotTLSAgen."${LANG%%.*}".msgs ]; then					# Check to see if we have a message file for $LANG else use Canadian english 
     loadMessages "${LANG%%.*}"
 else 
     loadMessages 'en_CA'
@@ -223,9 +246,10 @@ setDomains "$2" || exit 									# As a command use $2, as a hook pick up RENEWE
 #	Load "certificate specific" preferences here.
 [[ -f "$certbotLineage"/CertbotTLSAgen.cf ]] && . "$certbotLineage"/CertbotTLSAgen.cf		# Load domain/certificate specific preferences here.
 
+
 [[ ! -f "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" ]] && updateAction='manual'	# check to see if the desired DNS update process exists
 
-normaliseVariables										# ensure that variables that we expect to be lower case are lower case
+setupSystem											# normalize variable set defaults etc
 
 #	Check the the out path and file exists, if not creat it the generate a new output files name return 
 #	it plus the previous one if it exists. ** Only the new file is used at the moment **
@@ -260,7 +284,7 @@ done
 "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$outputFilepath" "${outputFilenames[0]}" 0 >> "$logFile" 2>&1
 
 #				spawn this off to run after the remove delay has expired
-
+TLSA_RemoveDelay=60
 [[ "${TLSA_AutoRemove:0:1}" = @(y|t|1) && "${outputFilenames[0]}" != "${outputFilenames[1]}" ]] && 
     ("$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$outputFilepath" "${outputFilenames[1]}" "$TLSA_RemoveDelay") >> "$logFile" 2>&1 < /dev/null & disown
 

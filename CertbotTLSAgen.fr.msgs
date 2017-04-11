@@ -9,13 +9,13 @@ E001 0 Le paramètre de ligne de commande 1 ou la variable d'\''évocation \"REN
 E002 0 Le paramètre 1 de la ligne de commande ou la variable evironment \"RENEWED_LINEAGE\" n'\''est pas un répertoire.
 E003 0 Le paramètre de ligne de commande 2 ou la variable d'\''évocation \"RENEWED_DOMAINS\" n'\''a pas été définie.
 E004 1 Impossible de créer le répertoire de fichier d'\''enregistrement TLSA \"%s\"
-E005 1 Impossible de définir le propriétaire et le groupe pour le répertoire TLSA \"%s\"
-E006 0 Veuillez spécifier un nom de base dans lequel les enregistrements TLSA générés peuvent être placés
+E005 1 Impossible de définir le propriétaire et le groupe pour le répertoire TLSA \"%s\".
+E006 0 Veuillez spécifier un nom de base dans lequel les enregistrements TLSA générés peuvent être placés.
 E007 1 Le répertoire \"%s\" n'\''existe pas et n'\''a pas pu être créé.
-W008 1 Utilisation du certificat invalide: %s, par défaut pour dan-ee ou 3
-W009 1 Sélecteur invalide: %s, par défaut pour pkey ou 1
-W010 1 Type de correspondance invalide: %s, par défaut pour sha-256 ou 1
-E011 1 La méthode de mise à jour DNS \"%s\" n'\''est pas connue ou n'\''est pas disponible, en passant à la valeur par défaut - %s
-I997 3 Un enregistrement TLSA a été généré pour le service %s utilisant le port %s, hébergé par %s
-I998 1 Temps écoulé %d ms
-E999 0 Une erreur inconnue s'\''est produite %s
+W008 1 Utilisation du certificat invalide: %s, par défaut pour dan-ee ou 3.
+W009 1 Sélecteur invalide: %s, par défaut pour pkey ou 1.
+W010 1 Type de correspondance invalide: %s, par défaut pour sha-256 ou 1.
+E011 1 La méthode de mise à jour DNS \"%s\" n'\''est pas connue ou n'\''est pas disponible, en passant à la valeur par défaut - %s.
+I997 3 Un enregistrement TLSA a été généré pour le service %s utilisant le port %s, hébergé par %s.
+I998 1 Temps écoulé %d ms.
+E999 0 Une erreur inconnue s'\''est produite %s.
