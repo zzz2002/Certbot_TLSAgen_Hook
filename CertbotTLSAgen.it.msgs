@@ -1,12 +1,13 @@
 #	Italian
 #	tranlated from Canadian english using Google translatee
 #
-#      message text in as a printf format
-#    number of varaibles expected for this message
-#error Code
+R+     s|si|v|vero|1			:# Lingua risposte positive specifiche
+R-     n|no|f|falso|0			:# linguaggio specifico risposte negative
 #
-R+     s|si|v|vero|1
-R-     n|no|f|falso|0
+#error Code
+#    number of variables expected for this message
+#      message text in as a printf format
+#
 E001 0 Parametro di comando linea 1 o la variabile cercate del \"RENEWED_LINEAGE\" non è stato impostato.
 E002 0 Parametro di comando linea 1 o la variabile cercate del \"RENEWED_LINEAGE\" non è una directory.
 E003 0 Parametro di comando la linea 2 o la variabile cercate del \"RENEWED_DOMAINS\" non è stato impostato.
@@ -17,7 +18,12 @@ E007 1 La directory \"%s\" non esiste, e non può essere creata.
 W008 1 uso del certificato non valido: %s, inadempiente a dan-ee o 3.
 W009 1 valido selettore: %s, come default PKEY o 1.
 W010 1 valido tipo corrispondenti: %s, come default sha-256 o 1.
-E011 1 Il metodo di aggiornamento DNS \"%s\" non è noto o non è disponibile, passare al default - %s.
-I997 3 Un record TLSA è stato generato per il servizio %s utilizzando la porta %s, ospitato da %s.
+W011 2 Il DNS metodo update \"%s\" non è noto o non è disponibile, passare al default metodo \"%s\".
+I012 1 Operazione di aggiornamento 1 DNS per cancellare vecchi dischi TLSA dovrebbero iniziare a %d secondi.
+W014 0 record duplicati creato, lasciando cadere.
+I015 3 Un record DANE-CA è stato generato per il servizio %s utilizzando la porta %s, ospitato da %s.
+I016 3 Un record DANE-EE è stato generato per il servizio %s utilizzando la porta %s, ospitato da %s.
+E997 0 È necessario impostare almeno una delle seguenti operazioni per sì, CA_Record o TLSA_Record
 I998 1 Il tempo trascorso %d ms.
 E999 0 un errore sconosciuto si è verificato %s.
+M001 0 Test e-mail qui: # messaggio email futuro ??
