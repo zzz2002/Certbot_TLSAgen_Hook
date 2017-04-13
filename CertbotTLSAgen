@@ -37,14 +37,6 @@ declare -a certbotDomains 									# array into which RENEWED_DOMAINS or $2 Doma
 declare -a services=( smtp smtps submission imap sieve dav davical https )			# array of servics we want TLSA records for
 declare -A pseudoSRVrecords									# associative array to be used when SRV records are not available
 
-
-
-#CA_Record=n
-#CA_Usage=dane-ca										# CA usage 
-#CA_Selector=pkey										# CA selector 
-#CA_Type=sha-256											# CA type
-
-
 TLSA_Record=y
 TLSA_Usage=dane-ee										# TLSA usage 
 TLSA_Selector=pkey										# TLSA selector 
@@ -166,7 +158,6 @@ setOutputFilenames() {
 		(( fileCount++ ))								# up the count
 		newName=$(printf "%s.%04d" "$2" "$fileCount")					# create new file name
 	    done
-#	    [[ -z $oldName ]] && oldName=$newName						#
 	    echo "$newName" "$oldName"								# pass the names back to caller
 	    return 0
 	else
@@ -271,8 +262,6 @@ outputFilenames=( $(setOutputFilenames $outputFilepath $outputFilenameBase)  ) |
 #	Generate the TLSA key as a HEX string. As we are dealiing with a single cert do this once 
 
 [[ "$TLSA_Record" = @(&nr) ]] && { outputMessage E997; exit; }
-#[[ "$CA_Record" = @($nr) && "$TLSA_Record" = @(&nr) ]] && { outputMessage E997; exit; }
-#[[ "$CA_Record" = @($pr) ]] && caDigest=$( generateDigest  $CA_Selector $CA_Type "$certbotLineage"'/chain.pem' ) 
 setDigestGeneratorParms "$TLSA_Usage" "$TLSA_Selector" "$TLSA_Type" || exit
 [[ "$TLSA_Record" = @($pr) ]] && tlsaDigest=$( generateDigest  $TLSA_Selector $TLSA_Type "$certbotLineage"'/cert.pem' )
 
@@ -284,11 +273,6 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)
         for service in $( seq 0 $((${#services[@]} -1 )) ); do					# Do this for each of the services that might us a TLSA record
 	while read -r _ _ srv_port srv_host; do							# read the out put of a DIG for a SRV record 
 	    if [[ ! -z "$srv_host" && ${srv_host%.} == $targetURL ]]; then			# if the host returned by dig = the Cerbot target output a TLSA record
-
-#		if [[ "$CA_Record"  = @($pr) ]]; then 
-#		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$CA_Usage"    "$CA_Selector"  "$CA_Type"   "$caDigest" >> "$outputFilepath/${outputFilenames[0]}"
-#		    outputMessage I015 "${services[$service]}" "$srv_port" "$srv_host"
-#		fi
 		if [[ "$TLSA_Record" = @($pr) ]]; then
 		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$TLSA_Usage" "$TLSA_Selector" "$TLSA_Type" "$tlsaDigest" >> "$outputFilepath/${outputFilenames[0]}"
 		    outputMessage I016 "${services[$service]}" "$srv_port" "$srv_host"
@@ -316,4 +300,3 @@ else
 fi
 outputMessage i998 $(( ( 10#$(date +%N) - startTime) / 1000000 ))
 exit 0
-
