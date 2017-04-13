@@ -5,8 +5,8 @@
 #error Code
 #
 #1234567890
-R+     y|yes|t|true|1             :#  p r
-R-     n|no||f|false|0            :#  n r
+R+     y|yes|t|true|1             :#  Language specific positive responses
+R-     n|no||f|false|0            :#  Language specific negative responses
 #
 E001 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" was not set. :#  comment
 E002 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" is not a directory.
@@ -26,4 +26,4 @@ I016 3 A DANE-EE record has been generated for the %s service using port %s, hos
 E997 0 You must set at least one of the following to yes, CA_Record or TLSA_Record
 I998 1 Elapsed time %d ms.
 E999 0 An unknown error has occured.
-M001 0 email test here :#  future email message ??
+M001 0 email test here :#  future email message(s) ??
