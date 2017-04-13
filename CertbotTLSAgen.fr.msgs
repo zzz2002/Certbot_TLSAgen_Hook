@@ -5,6 +5,8 @@
 #    number of varaibles expected for this message
 #error Code
 #
+R+     o|oui|v|vrai|1
+R-     n|non|f|faux|0
 E001 0 Le paramètre de ligne de commande 1 ou la variable d'\''évocation \"RENEWED_LINEAGE\" n'\''a pas été définie.
 E002 0 Le paramètre 1 de la ligne de commande ou la variable evironment \"RENEWED_LINEAGE\" n'\''est pas un répertoire.
 E003 0 Le paramètre de ligne de commande 2 ou la variable d'\''évocation \"RENEWED_DOMAINS\" n'\''a pas été définie.

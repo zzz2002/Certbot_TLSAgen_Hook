@@ -15,15 +15,26 @@ updateAction="manual"
 #					zones for which you want to use this facility must be capable of dynamic update.
 #
 #
-TLSA_TTL=1800						# TLSA DNS record TTL in seconds (15 minutes)
-TLSA_RemoveDelay=5400					# The interval in seconds between adding new TLSA records and removing the old ones.
-TLSA_AutoRemove=no					# Automatically remove old/replaced TLSA records 
+################The CA_Record feature is disabled for the moment as there are some undelying problem that must be dealt with first.
+######################     DO NOT ATTEMPT TO ENABLE
 #
-#	The following parameters will produce 3 1 1 certs
+#	The following parameters will produce 2 1 1 Certificate Authority certificate
+#CA_Required=y
+#CA_Usage=dane-ca					#	TLSA usage 	also seen as 3 in TLSA records
+#CA_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
+#CA_Type=sha-256						#	TLSA type	also seen as 1 in TLSA records
 #
+#	The following parameters will produce 3 1 1 TLSA certificate
+#
+TLSA_Required=y
 TLSA_Usage=dane-ee					#	TLSA usage 	also seen as 3 in TLSA records
 TLSA_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
 TLSA_Type=sha-256					#	TLSA type	also seen as 1 in TLSA records
+#
+#
+TLSA_TTL=1800						# TLSA DNS record TTL in seconds (15 minutes)
+TLSA_RemoveDelay=5400					# The interval in seconds between adding new TLSA records and removing the old ones.
+TLSA_AutoRemove=no					# Automatically remove old/replaced TLSA records 
 #
 #
 #	The generated TLSA records are saved in a file. this file is located in the "outputFilepath". 

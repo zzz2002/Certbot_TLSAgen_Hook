@@ -5,6 +5,8 @@
 #    number of varaibles expected for this message
 #error Code
 #
+R+     s|si|v|vero|1
+R-     n|no|f|falso|0
 E001 0 Parametro di comando linea 1 o la variabile cercate del \"RENEWED_LINEAGE\" non è stato impostato.
 E002 0 Parametro di comando linea 1 o la variabile cercate del \"RENEWED_LINEAGE\" non è una directory.
 E003 0 Parametro di comando la linea 2 o la variabile cercate del \"RENEWED_DOMAINS\" non è stato impostato.

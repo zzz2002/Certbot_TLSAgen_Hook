@@ -19,10 +19,13 @@ if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
     false
     exit
 fi
-shopt -s extglob   # <--- start using bash features right after version check
+shopt -s extglob   										# <--- start using bash features right after version check
 
 startTime=10#$(date +%N)
 
+pr=
+nr=
+ 
 installPath="/root"										# where we are installed/stored
 updateAction="manual"										# what DNS update process(?) to use
 
@@ -34,10 +37,13 @@ declare -a certbotDomains 									# array into which RENEWED_DOMAINS or $2 Doma
 declare -a services=( smtp smtps submission imap sieve dav davical https )			# array of servics we want TLSA records for
 declare -A pseudoSRVrecords									# associative array to be used when SRV records are not available
 
-CA_Record=y
-CA_Usage=dane-ca										# CA usage 
-CA_Selector=pkey										# CA selector 
-CA_Type=sha-256											# CA type
+
+
+#CA_Record=n
+#CA_Usage=dane-ca										# CA usage 
+#CA_Selector=pkey										# CA selector 
+#CA_Type=sha-256											# CA type
+
 
 TLSA_Record=y
 TLSA_Usage=dane-ee										# TLSA usage 
@@ -75,16 +81,16 @@ outputMessage() {
     local msgVars												# number of vaiables a message expects 
     local extraData												# additional data 
     local badCode												# variable to save additional data 
-    local xitCode
+    local xitCode												# just what it says it is
     errorCode=${1^^}												# set the internal variable to the upper case $1
     [[ -z "$errorCode" || -z "${messageText[$errorCode]}" ]] && { badCode="$errorCode"; errorCode='E999'; }	# did we get passed an error code and do we have a message for it
 														# no, set the oops code and save trhe actual code for diags 
-    msgVars=${messageText[$errorCode]:0:1}									# yes,get the number of variables needed for this message
-    extraData="${@:$(( msgVars + 2 ))}"										# save the extra data in a variable, stops the msg repeat
+    msgVars=$(( 10#${messageText[$errorCode]:0:1} ))								# yes,get the number of variables needed for this message
+    extraData="${*:$(( msgVars + 2 ))}"										# save the extra data in a variable, stops the msg repeat
+    extraData="${extraData%%\ *}"										# 
     [[ -n "$extraData" || -n "$badCode" ]] && extraData=' ** '"$badCode $extraData"				# add the seperator to front of this data
-
     printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" "${@:2:$msgVars}" "$extraData" >&3
-#    [[ ${logOnly:0:1} = @(n|f|0) ]] && printf  "%s - %s ${messageText[$errorCode]:2}  \n" "${0##*/}" "$errorCode" ${@:2:$msgVars} # 2>&1 1>stdout
+    [[ "$logOnly" = @($nr) ]] && printf  "%s - %s ${messageText[$errorCode]:2}  \n" "${0##*/}" "$errorCode" ${@:2:$msgVars} 2>&1
 
     case ${errorCode:0:1} in
 	I|W) xitCode=0;;											# for info and warning messages return 0
@@ -97,16 +103,20 @@ outputMessage() {
 loadMessages() {
     local aline
     local i
+    local j
     while read -r aline; do
 	    if [[ -n $aline ]]; then
-		case ${aline:0:1} in
+		j="${aline:0:1}"
+		aline="${aline%%\:\#\ \ *}"
+		case "${j^^}" in
 		    I|W|E|F)
-			i=${aline:0:4}
-			messageText[$i]=${aline:5}
-		    ;;
-		    M)
-			# email messages to be developed
-		    ;;
+			i="${aline:0:4}"
+			messageText[${i^^}]=${aline:5}
+			;;
+		    R)
+			[[ "${aline:1:1}" = '+' ]] && { pr="${aline:7}"; pr="${pr// /}"; }
+			[[ "${aline:1:1}" = '-' ]] && { nr="${aline:7}"; nr="${pr// /}"; }
+			;;  
 		    *)
 		        #  any thing else is ignored for the moment
 		    ;;
@@ -156,7 +166,7 @@ setOutputFilenames() {
 		(( fileCount++ ))								# up the count
 		newName=$(printf "%s.%04d" "$2" "$fileCount")					# create new file name
 	    done
-	    [[ -z $oldName ]] && oldName=$newName						#
+#	    [[ -z $oldName ]] && oldName=$newName						#
 	    echo "$newName" "$oldName"								# pass the names back to caller
 	    return 0
 	else
@@ -205,7 +215,7 @@ setDigestGeneratorParms() {
     esac
 }
 
-GenerateCertificateDigest() {
+generateDigest() {
     extract() {
         case "$1" in
 	    0) openssl x509 -in "$2" -outform DER;;						#
@@ -225,7 +235,8 @@ GenerateCertificateDigest() {
     ( extract "$1" "$3" | digest "$2" | format )							# generate the digest 
     exit $(( PIPESTATUS[0] | PIPESTATUS[1] | PIPESTATUS[2] ))					# Check the previous step worked
 }
-
+#=====================================================================================================================================================================
+#=====================================================================================================================================================================
 #	Load "global" prefernces here, a we cannot use command line parameters when this is called 
 #	from the certbots renew hook. They will have to go somewhere else, /etc/default/CertbotTLSAgen.cf 
 #	for general parameters, and similar file placed in the ...../letsencrypt/live/$certname/hookname 
@@ -259,35 +270,50 @@ outputFilenames=( $(setOutputFilenames $outputFilepath $outputFilenameBase)  ) |
 
 #	Generate the TLSA key as a HEX string. As we are dealiing with a single cert do this once 
 
+[[ "$TLSA_Record" = @(&nr) ]] && { outputMessage E997; exit; }
+#[[ "$CA_Record" = @($nr) && "$TLSA_Record" = @(&nr) ]] && { outputMessage E997; exit; }
+#[[ "$CA_Record" = @($pr) ]] && caDigest=$( generateDigest  $CA_Selector $CA_Type "$certbotLineage"'/chain.pem' ) 
 setDigestGeneratorParms "$TLSA_Usage" "$TLSA_Selector" "$TLSA_Type" || exit
-certificateDigest=$( GenerateCertificateDigest  $TLSA_Selector $TLSA_Type "$certbotLineage"/cert.pem ) || exit
+[[ "$TLSA_Record" = @($pr) ]] && tlsaDigest=$( generateDigest  $TLSA_Selector $TLSA_Type "$certbotLineage"'/cert.pem' )
 
-#	For each (sub)domain listed, check to see if it is a service domain that we might like to have a TLSA record for 
 
-for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do
+
+for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)domain listed in tghe input, check to see if it is a service domain that we might like to have a TLSA record for 
     targetURL=${certbotDomains[domain]%.}							# I am not sure whether the Cerbot list of (sub)domains has a trailing "."
     targetDomain=$( getDomainData "$targetURL" )						# get the domain for this (sub)domain 
         for service in $( seq 0 $((${#services[@]} -1 )) ); do					# Do this for each of the services that might us a TLSA record
 	while read -r _ _ srv_port srv_host; do							# read the out put of a DIG for a SRV record 
-	    if [[ ! -z "$srv_host" && ${srv_host%.} == "$targetURL" ]]; then			# if the host returned by dig = the Cerbot target output a TLSA record
+	    if [[ ! -z "$srv_host" && ${srv_host%.} == $targetURL ]]; then			# if the host returned by dig = the Cerbot target output a TLSA record
 
-		printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$TLSA_Usage" "$TLSA_Selector" "$TLSA_Type" "$certificateDigest" >> "$outputFilepath/${outputFilenames[0]}"
-
-		outputMessage i997 "${services[$service]}" "$srv_port" "$srv_host"
+#		if [[ "$CA_Record"  = @($pr) ]]; then 
+#		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$CA_Usage"    "$CA_Selector"  "$CA_Type"   "$caDigest" >> "$outputFilepath/${outputFilenames[0]}"
+#		    outputMessage I015 "${services[$service]}" "$srv_port" "$srv_host"
+#		fi
+		if [[ "$TLSA_Record" = @($pr) ]]; then
+		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$TLSA_Usage" "$TLSA_Selector" "$TLSA_Type" "$tlsaDigest" >> "$outputFilepath/${outputFilenames[0]}"
+		    outputMessage I016 "${services[$service]}" "$srv_port" "$srv_host"
+		fi
 	    fi
 	done < <(getServiceData "${services[$service]}" "$targetDomain" )
     done
 done
 
-# 				finished creating TLSA records, now update the DNS -  add records to DNS
+cmp -s "$outputFilepath${outputFilenames[0]}" "$outputFilepath${outputFilenames[1]}"
 
-"$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$outputFilepath" "${outputFilenames[0]}" 0 >> "$logFile" 2>&1
+if [[ $? = 0 ]]; then
+    rm "$outputFilepath${outputFilenames[0]}"
+    outputMessage W014
+else
 
-#				spawn this off to run after the remove delay has expired
-TLSA_RemoveDelay=60
-[[ "${TLSA_AutoRemove:0:1}" = @(y|t|1) && "${outputFilenames[0]}" != "${outputFilenames[1]}" ]] && 
-    ("$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$outputFilepath" "${outputFilenames[1]}" "$TLSA_RemoveDelay") >> "$logFile" 2>&1 < /dev/null & disown
+    "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$outputFilepath" "${outputFilenames[0]}" 0 >&3 2>&3			# finished creating TLSA records, now update the DNS by adding records to DNS
 
+    if [[ "$TLSA_AutoRemove" = @($pr) && ! -z "${outputFilenames[1]}" ]]; then 									# spawn this off to run after the remove delay has expired
+
+	outputMessage i012 "$TLSA_RemoveDelay"
+
+	("$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$outputFilepath" "${outputFilenames[1]}" "$TLSA_RemoveDelay") >&3 2>&3 < /dev/null & disown
+    fi
+fi
 outputMessage i998 $(( ( 10#$(date +%N) - startTime) / 1000000 ))
 exit 0
 

@@ -4,7 +4,11 @@
 #    number of varaibles expected for this message
 #error Code
 #
-E001 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" was not set.
+#1234567890
+R+     y|yes|t|true|1             :#  p r
+R-     n|no||f|false|0            :#  n r
+#
+E001 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" was not set. :#  comment
 E002 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" is not a directory.
 E003 0 Command line parameter 2 or the evironment variable \"RENEWED_DOMAINS\" was not set.
 E004 1 Unable to create the TLSA record file directory \"%s\".
@@ -15,10 +19,11 @@ W008 1 Invalid certificate usage: %s, defaulting to dan-ee or 3.
 W009 1 Invalid selector: %s, defaulting to pkey or 1.
 W010 1 Invalid matching type: %s, defaulting to sha-256 or 1.
 W011 2 The DNS update method \"%s\" is not known or is unavailable, switching to the default \"%s\" method.
-I997 3 A TLSA record has been generated for the %s service using port %s, hosted by %s.
+I012 1 DNS update operation to delete old TLSA records should start in %u seconds.
+W014 0 Duplicate records created, dropping. 
+I015 3 A DANE-CA record has been generated for the %s service using port %s, hosted by %s.
+I016 3 A DANE-EE record has been generated for the %s service using port %s, hosted by %s.
+E997 0 You must set at least one of the following to yes, CA_Record or TLSA_Record
 I998 1 Elapsed time %d ms.
 E999 0 An unknown error has occured.
-M001 0 future email message
-x
-x
-
+M001 0 email test here :#  future email message ??
