@@ -1,12 +1,11 @@
 #	Canadian English
 #
+R+     y|yes|t|true|1             :#  Language specific positive responses
+R-     n|no||f|false|0            :#  Language specific negative responses
+#
 #      message text in as a printf format
 #    number of varaibles expected for this message
 #error Code
-#
-#1234567890
-R+     y|yes|t|true|1             :#  Language specific positive responses
-R-     n|no||f|false|0            :#  Language specific negative responses
 #
 E001 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" was not set. :#  comment
 E002 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" is not a directory.
