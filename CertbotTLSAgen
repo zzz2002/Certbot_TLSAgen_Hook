@@ -234,13 +234,13 @@ generateDigest() {
 #	for certificate specifice data
 [[ -f /etc/default/CertbotTLSAgen.cf ]] && . /etc/default/CertbotTLSAgen.cf
 
-setupSystem											# normalize variable set defaults etc
-
 if [ -f $installPath/CertbotTLSAgen."${LANG%%.*}".msgs ]; then					# Check to see if we have a message file for $LANG else use Canadian english 
     loadMessages "${LANG%%.*}"
 else 
     loadMessages 'en_CA'
 fi
+
+setupSystem											# normalize variable set defaults etc
 
 setLineage "$1" || exit 									# As a command use $1, as a hook pick up RENEWED_LINEAGE. result certbotLineage
 setDomains "$2" || exit 									# As a command use $2, as a hook pick up RENEWED_DOMAINS. result certbotDomains
