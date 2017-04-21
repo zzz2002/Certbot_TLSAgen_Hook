@@ -19,17 +19,17 @@ updateAction="manual"
 ######################     DO NOT ATTEMPT TO ENABLE
 #
 #	The following parameters will produce 2 1 1 Certificate Authority certificate
-#CA_Required=y
-#CA_Usage=dane-ca					#	TLSA usage 	also seen as 3 in TLSA records
-#CA_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
-#CA_Type=sha-256						#	TLSA type	also seen as 1 in TLSA records
+CA_Required=y
+CA_Usage=dane-ca					#	TLSA usage 	also seen as 3 in TLSA records
+CA_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
+CA_Type=sha-256						#	TLSA type	also seen as 1 in TLSA records
 #
 #	The following parameters will produce 3 1 1 TLSA certificate
 #
-TLSA_Required=y
-TLSA_Usage=dane-ee					#	TLSA usage 	also seen as 3 in TLSA records
-TLSA_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
-TLSA_Type=sha-256					#	TLSA type	also seen as 1 in TLSA records
+EE_Required=y
+EE_Usage=dane-ee					#	TLSA usage 	also seen as 3 in TLSA records
+EE_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
+EE_Type=sha-256						#	TLSA type	also seen as 1 in TLSA records
 #
 #
 TLSA_TTL=1800						# TLSA DNS record TTL in seconds (15 minutes)

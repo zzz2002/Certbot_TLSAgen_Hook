@@ -23,8 +23,8 @@ shopt -s extglob   										# <--- start using bash features right after versio
 
 startTime=10#$(date +%N)
 
-pr=
-nr=
+positiveResponses=''
+negativeResponses=''
  
 installPath="/root"										# where we are installed/stored
 updateAction="manual"										# what DNS update process(?) to use
@@ -37,10 +37,16 @@ declare -a certbotDomains 									# array into which RENEWED_DOMAINS or $2 Doma
 declare -a services=( smtp smtps submission imap sieve dav davical https )			# array of servics we want TLSA records for
 declare -A pseudoSRVrecords									# associative array to be used when SRV records are not available
 
-TLSA_Record=y
-TLSA_Usage=dane-ee										# TLSA usage 
-TLSA_Selector=pkey										# TLSA selector 
-TLSA_Type=sha-256										# TLSA type
+CA_Record=y
+CA_Usage=dane-ca										# dane-ca/ta usage 
+CA_Selector=pkey										# dane-ca/ta selector 
+CA_Type=sha-256											# dane-ca/ta type
+
+
+EE_Record=y
+EE_Usage=dane-ee										# dane-ee usage - always dan-ee
+EE_Selector=pkey										# dane-ee selector 
+EE_Type=sha-256											# dane-ee type
 
 TLSA_TTL=1800											# TLSA DNS record TTL in seconds 
 TLSA_RemoveDelay=2700										# the interval in seconds between adding new TLSA records and removing the old ones.
@@ -61,10 +67,10 @@ declare -A messageText										# associative array containing information &  er
 #	Try and reduce all the variations on yes and no, due to both language and user input to y or n 
 #
 normalizeResponse() {
-    local x="$1"
-    [[ ${1,,} = @($pr) ]] && x='y'
-    [[ ${1,,} = @($nr) ]] && x='n'
-    echo "$x"
+    local x="$1"										# save the input value in x, if we don't understand it then just pass it back unchanged
+    [[ ${1,,} = @($positiveResponses) ]] && x='y'						# if the input variable is one of the positive responses, set x to y
+    [[ ${1,,} = @($negativeResponses) ]] && x='n'						# if the input variable is one of the negative responses, set x to n
+    echo "$x"											# pass back the normalized value or the original
 }
 
 #
@@ -73,13 +79,13 @@ normalizeResponse() {
 #
 normalizeSystemVariables() {
     logOnly="$(normalizeResponse "$logOnly")"
-    TLSA_Record="$(normalizeResponse "$TLSA_Record")"
+    EE_Record="$(normalizeResponse "$EE_Record")"
     TLSA_AutoRemove="$(normalizeResponse "$TLSA_AutoRemove")"
 
     updateAction="${updateAction,,}"
-    TLSA_Usage="${TLSA_Usage,,}"
-    TLSA_Selector="${TLSA_Selector,,}"
-    TLSA_Type="${TLSA_Type,,}"
+    EE_Usage="${EE_Usage,,}"
+    EE_Selector="${EE_Selector,,}"
+    EE_Type="${EE_Type,,}"
 
     exec 3>> "$logFile"
 }
@@ -139,8 +145,8 @@ loadLanguageDependent() {
 			messageText[${i^^}]=${aline:5}
 			;;
 		    R)
-			[[ "${aline:1:1}" = '+' ]] && { pr="${aline:7}"; pr="${pr// /}"; }
-			[[ "${aline:1:1}" = '-' ]] && { nr="${aline:7}"; nr="${nr// /}"; }
+			[[ "${aline:1:1}" = '+' ]] && { positiveResponses="${aline:7}"; positiveResponses="${positiveResponses// /}"; }
+			[[ "${aline:1:1}" = '-' ]] && { negativeResponses="${aline:7}"; negativeResponses="${negativeResponses// /}"; }
 			;;
 		    M)
 			#  future email message 
@@ -300,8 +306,8 @@ outputFilenames=( $(setOutputFilenames $outputFilepath $outputFilenameBase)  ) |
 
 #	Generate the TLSA key as a HEX string. As we are dealiing with a single cert do this once 
 
-[[ "$TLSA_Record" = n ]] && { outputMessage E997; exit; }
-[[ "$TLSA_Record" = y ]] && dane_eeDigest=$( generateDigest  "$TLSA_Usage" "$TLSA_Selector" "$TLSA_Type" "$certbotLineage"'/cert.pem' ) || exit
+[[ "$EE_Record" = n ]] && { outputMessage E997; exit; }
+[[ "$EE_Record" = y ]] && dane_eeDigest=$( generateDigest  "$EE_Usage" "$EE_Selector" "$EE_Type" "$certbotLineage"'/cert.pem' ) || exit
 
 
 
@@ -313,8 +319,8 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)
 	    if [[ -n "$srv_host" && ${srv_host%.} == $targetURL ]]; then			# if the host returned by dig = the Cerbot target, then process it, else move on
 #		get any tlsa records associated with this 
 #		split the dig output into 
-		if [[ "$TLSA_Record" = y ]]; then
-#		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$TLSA_Usage" "$TLSA_Selector" "$TLSA_Type" "$dane_eeDigest" >> "$outputFilepath/${outputFilenames[0]}"
+		if [[ "$EE_Record" = y ]]; then
+#		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$EE_Usage" "$EE_Selector" "$EE_Type" "$dane_eeDigest" >> "$outputFilepath/${outputFilenames[0]}"
 		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $dane_eeDigest >> "$outputFilepath/${outputFilenames[0]}"
 		    outputMessage I016 "${services[$service]}" "$srv_port" "$srv_host"
 		fi
