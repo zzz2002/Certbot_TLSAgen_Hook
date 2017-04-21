@@ -1,5 +1,5 @@
-#!/bin/bash
-# -*- mode: sh; -*-
+#!/bin/bash -x
+# -*- mode: bash; -*-
 # Copyright (c) 2017 John L. Allen
 # This program is free software: you can redistribute it and/or modify it under the terms of the 
 # GNU General Public License as published by the Free Software Foundation, either version 3 of 
@@ -56,18 +56,36 @@ declare -a outputFilenames									# array containing the file names for old and
 
 declare -A messageText										# associative array containing information &  error messages
 
-setupSystem() {
-    logOnly="${logOnly,,}"
-    TLSA_AutoRemove="${TLSA_AutoRemove,,}"
+############################################################################################################
+#
+#	Try and reduce all the variations on yes and no, due to both language and user input to y or n 
+#
+normalizeResponse() {
+    local x="$1"
+    [[ ${1,,} = @($pr) ]] && x='y'
+    [[ ${1,,} = @($nr) ]] && x='n'
+    echo "$x"
+}
+
+#
+#	We can tell the user what to do, but they may not actually do it.
+#	So we will try to make things look the way we expect them to be. May not work but ...
+#
+normalizeSystemVariables() {
+    logOnly="$(normalizeResponse "$logOnly")"
+    TLSA_Record="$(normalizeResponse "$TLSA_Record")"
+    TLSA_AutoRemove="$(normalizeResponse "$TLSA_AutoRemove")"
 
     updateAction="${updateAction,,}"
     TLSA_Usage="${TLSA_Usage,,}"
     TLSA_Selector="${TLSA_Selector,,}"
     TLSA_Type="${TLSA_Type,,}"
-    
+
     exec 3>> "$logFile"
 }
-
+#
+#
+#
 outputMessage() {
     local errorCode												# local version of the error code
     local msgVars												# number of vaiables a message expects 
@@ -82,22 +100,37 @@ outputMessage() {
     extraData="${extraData%%\ *}"										# 
     [[ -n "$extraData" || -n "$badCode" ]] && extraData=' ** '"$badCode $extraData"				# add the seperator to front of this data
     printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" "${@:2:$msgVars}" "$extraData" >&3
-    [[ "$logOnly" = @($nr) ]] && printf  "%s - %s ${messageText[$errorCode]:2}  \n" "${0##*/}" "$errorCode" ${@:2:$msgVars} 2>&1
+    [[ "$logOnly" = n ]] && printf  "%s - %s ${messageText[$errorCode]:2}  \n" "${0##*/}" "$errorCode" ${@:2:$msgVars} 2>&1
 
     case ${errorCode:0:1} in
 	I|W) xitCode=0;;											# for info and warning messages return 0
 	E|F) xitCode=1;;											# for error or fatal return 1
-	*)   xitCode=3;;												# ooops, don't know what this means, exit 3
+	*)   xitCode=3;;											# ooops, don't know what this means, exit 3
     esac
     return $xitCode
 }
-
-loadMessages() {
+#
+#	Load language dependent things like message, responses (y/n), email message texts ...
+#	the first character of each line defines it purpose
+#	I, W, E, F are messages:
+#		I  Informational
+#		W  Warning, we don't understand the settiong supplied, but there is a resonable default to use.
+#		E  Error, something went wrong and we cannot continue
+#		F  Fatal, not sure that this is needed (MAY BE DROPPED)
+#	R Responses dependent on language
+#		+  positive responses y/yes/t/true...   o/oui/v/vrai ...
+#		-  negative responses n/no/f/false...   n/non/f/faux ...
+#	M email message text(s)
+#
+#	the next three charcaters are dependent on the purpose, for messages it deines the message. 
+#	the next column defines for messages the number of fields in the message.
+#
+loadLanguageDependent() {
     local aline
     local i
     local j
     while read -r aline; do
-	    if [[ -n $aline ]]; then
+	    if [[ -n "$aline" ]]; then
 		j="${aline:0:1}"
 		aline="${aline%%\:\#\ \ *}"
 		case "${j^^}" in
@@ -107,8 +140,11 @@ loadMessages() {
 			;;
 		    R)
 			[[ "${aline:1:1}" = '+' ]] && { pr="${aline:7}"; pr="${pr// /}"; }
-			[[ "${aline:1:1}" = '-' ]] && { nr="${aline:7}"; nr="${pr// /}"; }
-			;;  
+			[[ "${aline:1:1}" = '-' ]] && { nr="${aline:7}"; nr="${nr// /}"; }
+			;;
+		    M)
+			#  future email message 
+		    ;;
 		    *)
 		        #  any thing else is ignored for the moment
 		    ;;
@@ -167,8 +203,9 @@ setOutputFilenames() {
 	outputMessage e007 "$1"; return $?							# oops, we don't have a directory, error 4
     fi
 }
-
-#                                          these two function need to have error handling added
+#
+#	these two function need to have error handling added
+#
 getServiceData() {
     if [ ${#pseudoSRVrecords[@]} -le 0 ]; then							# are we using pseudo SRV records
 	dig +short _"$1"._tcp."$2" SRV								# No, use dig to get SRV records 
@@ -183,29 +220,9 @@ getDomainData() {
     echo "${dnsSOAdata[0]%.}"									# pass back the doamin name
 }
 
-#                  THe following functions were "borrowed" from Viktor Dukhovni's tlsagen
+#                  THe following code was "borrowed" from Viktor Dukhovni's tlsagen
 #********************************************************************************************************************
-setDigestGeneratorParms() {
-    case "${1}" in
-	0|pkix-[ct]a)	TLSA_Usage=0;;								#
-	1|pkix-ee)	TLSA_Usage=1;;								#
-	2|dane-[ct]a)	TLSA_Usage=2;;								#
-	3|dane-ee)	TLSA_Usage=3;;								#
-	*)		TLSA_Usage=3; outputMessage w008 "$1";;					# The usage parameter was not understood, set to default 3 and output msg
-    esac
-    case "${2}" in
-	0|cert)		TLSA_Selector=0;;							#
-	1|spki|pkey)	TLSA_Selector=1;;							#
-	*)		TLSA_Selector=1; outputMessage w009 "$1";;				# The selector Parm was not understood, set to default 1 & output message
-    esac
-    case "${3}" in
-	0|full)				TLSA_Type=0;;						# 
-	1|sha2-256|sha256|sha-256)	TLSA_Type=1;;						#
-	2|sha2-512|sha512|sha-512)	TLSA_Type=2;;						#
-	*)				TLSA_Type=1; outputMessage w010 "$1";;			# the type param was not understood, set to default 1 & message
-    esac
-}
-
+#
 generateDigest() {
     extract() {
         case "$1" in
@@ -223,24 +240,47 @@ generateDigest() {
     format() {
 	od -vAn -tx1 | tr -d ' \012'								# convert the digest data to a hex string, removing any spaces & CRs
     }
-    ( extract "$1" "$3" | digest "$2" | format )							# generate the digest 
+
+    case "${1}" in
+	0|pkix-[ct]a)	Usage=0;;								#
+	1|pkix-ee)	Usage=1;;								#
+	2|dane-[ct]a)	Usage=2;;								#
+	3|dane-ee)	Usage=3;;								#
+	*)		Usage=3; outputMessage w008 "$1";;					# The usage parameter was not understood, set to default 3 and output msg
+    esac
+    case "${2}" in
+	0|cert)		Selector=0;;								#
+	1|spki|pkey)	Selector=1;;								#
+	*)		Selector=1; outputMessage w009 "$1";;					# The selector Parm was not understood, set to default 1 & output message
+    esac
+    case "${3}" in
+	0|full)				Type=0;;						# 
+	1|sha2-256|sha256|sha-256)	Type=1;;						#
+	2|sha2-512|sha512|sha-512)	Type=2;;						#
+	*)				Type=1; outputMessage w010 "$1";;			# the type param was not understood, set to default 1 & message
+    esac
+
+    echo "$Usage" "$Selector" "$Type" $( extract "$Selector" "$4" | digest "$Type" | format )	# generate the digest 
     exit $(( PIPESTATUS[0] | PIPESTATUS[1] | PIPESTATUS[2] ))					# Check the previous step worked
 }
 #=====================================================================================================================================================================
-#=====================================================================================================================================================================
-#	Load "global" prefernces here, a we cannot use command line parameters when this is called 
-#	from the certbots renew hook. They will have to go somewhere else, /etc/default/CertbotTLSAgen.cf 
-#	for general parameters, and similar file placed in the ...../letsencrypt/live/$certname/hookname 
-#	for certificate specifice data
-[[ -f /etc/default/CertbotTLSAgen.cf ]] && . /etc/default/CertbotTLSAgen.cf
 
-if [ -f $installPath/CertbotTLSAgen."${LANG%%.*}".msgs ]; then					# Check to see if we have a message file for $LANG else use Canadian english 
-    loadMessages "${LANG%%.*}"
+
+
+#=====================================================================================================================================================================
+#	My understanding is that we cannot use command line parameters when this is called as a certbots renew-hook.
+#	They will have to go somewhere else, I chose to use /etc/default/CertbotTLSAgen.cf for general use preferences
+#	And use a similar file placed in the ...../letsencrypt/live/$certname/hookname for certificate specifice data
+#
+[[ -f /etc/default/CertbotTLSAgen.cf ]] && . /etc/default/CertbotTLSAgen.cf			# Load global user preferences (/etc/default/CertbotTLSAgen.cf)
+
+if [ -f $installPath/CertbotTLSAgen."${LANG%%.*}".msgs ]; then					# Check to see if we have a file for $LANG, I use only the language code, I strip off ther utf_8  
+    loadLanguageDependent "${LANG%%.*}"								# if so load the language specific file
 else 
-    loadMessages 'en_CA'
+    loadLanguageDependent 'en_CA'								# else load the Canadian english as the default
 fi
 
-setupSystem											# normalize variable set defaults etc
+normalizeSystemVariables									# normalize variable set after loading the global preferences & language etc
 
 setLineage "$1" || exit 									# As a command use $1, as a hook pick up RENEWED_LINEAGE. result certbotLineage
 setDomains "$2" || exit 									# As a command use $2, as a hook pick up RENEWED_DOMAINS. result certbotDomains
@@ -248,12 +288,11 @@ setDomains "$2" || exit 									# As a command use $2, as a hook pick up RENEWE
 #	Load "certificate specific" preferences here.
 [[ -f "$certbotLineage"/CertbotTLSAgen.cf ]] && . "$certbotLineage"/CertbotTLSAgen.cf		# Load domain/certificate specific preferences here.
 
+normalizeSystemVariables									# normalize variable set after loading the certificate specific information
 
 [[ ! -f "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" ]] && updateAction='manual'	# check to see if the desired DNS update process exists
 
-setupSystem											# normalize variable set defaults etc
-
-#	Check the the out path and file exists, if not creat it the generate a new output files name return 
+#	Check the the out path and file exists, if not create it the generate a new output files name return 
 #	it plus the previous one if it exists. ** Only the new file is used at the moment **
 
 outputFilenames=( $(setOutputFilenames $outputFilepath $outputFilenameBase)  ) || exit
@@ -261,9 +300,8 @@ outputFilenames=( $(setOutputFilenames $outputFilepath $outputFilenameBase)  ) |
 
 #	Generate the TLSA key as a HEX string. As we are dealiing with a single cert do this once 
 
-[[ "$TLSA_Record" = @(&nr) ]] && { outputMessage E997; exit; }
-setDigestGeneratorParms "$TLSA_Usage" "$TLSA_Selector" "$TLSA_Type" || exit
-[[ "$TLSA_Record" = @($pr) ]] && tlsaDigest=$( generateDigest  $TLSA_Selector $TLSA_Type "$certbotLineage"'/cert.pem' )
+[[ "$TLSA_Record" = n ]] && { outputMessage E997; exit; }
+[[ "$TLSA_Record" = y ]] && dane_eeDigest=$( generateDigest  "$TLSA_Usage" "$TLSA_Selector" "$TLSA_Type" "$certbotLineage"'/cert.pem' ) || exit
 
 
 
@@ -272,9 +310,12 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)
     targetDomain=$( getDomainData "$targetURL" )						# get the domain for this (sub)domain 
         for service in $( seq 0 $((${#services[@]} -1 )) ); do					# Do this for each of the services that might us a TLSA record
 	while read -r _ _ srv_port srv_host; do							# read the out put of a DIG for a SRV record 
-	    if [[ ! -z "$srv_host" && ${srv_host%.} == $targetURL ]]; then			# if the host returned by dig = the Cerbot target output a TLSA record
-		if [[ "$TLSA_Record" = @($pr) ]]; then
-		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$TLSA_Usage" "$TLSA_Selector" "$TLSA_Type" "$tlsaDigest" >> "$outputFilepath/${outputFilenames[0]}"
+	    if [[ -n "$srv_host" && ${srv_host%.} == $targetURL ]]; then			# if the host returned by dig = the Cerbot target, then process it, else move on
+#		get any tlsa records associated with this 
+#		split the dig output into 
+		if [[ "$TLSA_Record" = y ]]; then
+#		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$TLSA_Usage" "$TLSA_Selector" "$TLSA_Type" "$dane_eeDigest" >> "$outputFilepath/${outputFilenames[0]}"
+		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $dane_eeDigest >> "$outputFilepath/${outputFilenames[0]}"
 		    outputMessage I016 "${services[$service]}" "$srv_port" "$srv_host"
 		fi
 	    fi
@@ -291,7 +332,7 @@ else
 
     "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$outputFilepath" "${outputFilenames[0]}" 0 >&3 2>&3			# finished creating TLSA records, now update the DNS by adding records to DNS
 
-    if [[ "$TLSA_AutoRemove" = @($pr) && ! -z "${outputFilenames[1]}" ]]; then 									# spawn this off to run after the remove delay has expired
+    if [[ "$TLSA_AutoRemove" = y && ! -z "${outputFilenames[1]}" ]]; then 									# spawn this off to run after the remove delay has expired
 
 	outputMessage i012 "$TLSA_RemoveDelay"
 
