@@ -9,7 +9,7 @@ if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
     false
     exit
 fi
-shopt -s extglob   # <--- start using bash features right after version check
+shopt -s extglob
 #
 #	dummy function to allow for a updateDNS NOP when manual updating is desired
 #

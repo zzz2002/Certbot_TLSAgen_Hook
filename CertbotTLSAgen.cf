@@ -1,50 +1,69 @@
 #
 #
-installPath="/usr/local/bin"	# where we are installed/stored
+#installPath="/usr/local/bin"	# where we are installed/stored
 #
 #	Which services do we want TLSA records for, services is an array of servics we want TLSA records for
-services=( smtp smtps submission imap sieve dav davical https 
+#services=( smtp smtps submission imap sieve dav davical https 
 #
 #
-updateAction="manual"
+#updateAction="manual"
 #	After the TLSA records have bee created they need tobe added to your DNS system.
 #	the methodes currently available are:
 #		manual		-	the system takes no action. To add the TLSA records to your DNS, you must do the updatethe zone files  manually.
 #
-#		nsupdate	-	the system will attempt to install the TLSA records in your DNS, using nsupdate. In order for this to work 
-#					zones for which you want to use this facility must be capable of dynamic update.
-#
-#
-################The CA_Record feature is disabled for the moment as there are some undelying problem that must be dealt with first.
-######################     DO NOT ATTEMPT TO ENABLE
+#	The TTL for TLSA records should be kept low, probably not more the 1 hour. If a certificate is compromised you want the 
+#	TLSA records associated with the compromised cert to expire ASAP so that they show up as invalid ASAP.
+#	Ideally things like TLSA records etc, should not be cached, unfortunately we don't live in an ideal world
 #
 #	The following parameters will produce 2 1 1 Certificate Authority certificate
-CA_Required=y
-CA_Usage=dane-ca					#	TLSA usage 	also seen as 3 in TLSA records
-CA_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
-CA_Type=sha-256						#	TLSA type	also seen as 1 in TLSA records
+#CA_Required=y
+#CA_Usage=dane-ca					#	TLSA usage 	also seen as 3 in TLSA records
+#CA_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
+#CA_Type=sha-256						#	TLSA type	also seen as 1 in TLSA records
 #
 #	The following parameters will produce 3 1 1 TLSA certificate
 #
-EE_Required=y
-EE_Usage=dane-ee					#	TLSA usage 	also seen as 3 in TLSA records
-EE_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
-EE_Type=sha-256						#	TLSA type	also seen as 1 in TLSA records
+#EE_Required=y
+#EE_Usage=dane-ee					#	TLSA usage 	also seen as 3 in TLSA records
+#EE_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
+#EE_Type=sha-256						#	TLSA type	also seen as 1 in TLSA records
 #
 #
-TLSA_TTL=1800						# TLSA DNS record TTL in seconds (15 minutes)
-TLSA_RemoveDelay=5400					# The interval in seconds between adding new TLSA records and removing the old ones.
-TLSA_AutoRemove=no					# Automatically remove old/replaced TLSA records 
+#	The TTL for TLSA records should be kept low, probably not more the 1 hour. If a certificate is compromised you want the 
+#	TLSA records associated with the compromised cert to expire ASAP so that the underlying certificate shows up as invalid ASAP.
+#	Ideally things like TLSA records etc, should not be cached, unfortunately we don't live in an ideal world
+#
+#TLSA_TTL=1800						# TLSA DNS record TTL in seconds (15 minutes)
+#TLSA_RemoveDelay=5400					# The interval in seconds between adding new TLSA records and removing the old ones.
+#TLSA_AutoRemove=no					# Automatically remove old/replaced TLSA records 
 #
 #
-#	The generated TLSA records are saved in a file. this file is located in the "outputFilepath". 
-#	The name of which  is derived from the "outputFilenameBase" plus a seqeunce number 
-#	using the defaults below would result in a filename of tlsa.0001 for example.
+#	The TLSA update records will be put in either the "TLSA_additions" or "TLSA_deletions" file, these files are currently saved 
+#	in the Letencrypt live directory. This can be overriddden by specifing a path in outputFilepath. 
+#	NB.If you have more than one certificate for which you create TLSA records you will need one path per certificate. 
+#	This can be done by setting this in the certicate version of the config file.
 #
-outputFilepath="/etc/bind/tlsa/example.com"
-outputFilenameBase="tlsa"
+#outputFilepath="/tmp"
 #
 #
-logFile="/var/log/tlsagen.log"				# Name and location of the log file associated with this app
-logOny="no" 						# When running standalone output messages to stdout
+#logOny="no" 						# When running standalone output messages to stdout
+#logFile="/var/log/tlsagen.log"				# Name and location of the log file associated with this app
+#
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+#	Rather than using DIG to retrieve ports and targets, we can use a pseudo dig operation to retrieve this data.
+#	pseudoSRVrecords is an associative array, the index to the array is the service host
+#	each entry in the array consists of the port associated with the service and the target URL for the service
+#	dig would return priority, weight, port and target, as we do not use priority or weight they are included in the table.
+#	the function that gets this info from returns  0 0 for these params.
+#
+#pseudoSRVrecords=( [smtp.example.com]='25 smtp.example.com.' 
+#		    [submission.example.com]='587 smtp.example.com.'
+#		    [imap.example.com]='993 imap.example.com.'
+#		    [sieve.example.com]='4190 sieve.example.com.' 
+#		    [dav.example.com]='443 dav.example.com.' 
+#		    [davical.example.com]='443 davical.example.com.' 
+#		    [https.example.com]='443 www.example.com.' )
+#
 #

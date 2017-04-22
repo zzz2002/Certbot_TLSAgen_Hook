@@ -1,26 +1,26 @@
-#!/bin/bash 
+#!/bin/bash
 # -*- mode: sh; -*-
 #
 #Last modified:
 #	2017-04-02
 #	2017-04-07
+#	2017-04-22
 
 if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
     echo "error: script must run in bash version 4.0 or later"
     false
     exit
 fi
+shopt -s extglob
 
-shopt -s extglob   # <--- start using bash features right after version check
-
-[[ "$4" -gt 0 ]] && sleep "$4"
+[[ "$3" -gt 0 ]] && sleep "$3"
 while read tlsaRecord; do
     nsupdateInput="${nsupdateInput}$1 ""$tlsaRecord\n"
-done < "$2"/"$3"
+done < "$2"
 
 [[ -n "$nsupdateInput" ]] && printf -- "server 127.0.0.1\n${nsupdateInput}send\n" | nsupdate -v -k /etc/bind/rndc.key 2>&1
-xx=$(( PIPESTATUS[0] | PIPESTATUS[1] ))
+exitCode=$(( PIPESTATUS[0] | PIPESTATUS[1] ))
 
 echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} $1 $3 ***ended*** $xx"
 
-exit "$xx"
+exit "$exitCode"
