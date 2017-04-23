@@ -48,6 +48,7 @@ This program can also be run standalone, in which case it makes use of two posit
 
 
 As we cannot use command line parameters when called as a Certbot renew-hook all other parameters have to set using configuration files. I use the */etc/default/CertbotTLSAgen.cf* for general/global parameters, and similar file placed in the *…/letsencrypt/live* for certificate specific parameters.  The certificate specific parameters override the general/global parameters.
+
 **Installation**
 Copy the all files to a location of your choice. Ensure that the file CertbotTLSAgen has execute permission.
 Copy the file *CertbotTLSAgen.cf* to */etc/defaults.* and to *…/letsencrypt/live/certificate-name*.
