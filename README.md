@@ -28,7 +28,7 @@ For each service that we require a TLSA record for, we check to see if the servi
 After a certificate has been renewed, certbot calls any renew-hooks that have been set to run, once for each successfully renewed certificate. These commands are passed two shell variables,
 
  1. **RENEWED_LINEAGE** which points to the location of the new certs and
-    keys. Currently this is /etc/letsencrypt/live/certificate-name
+    keys. Currently this is "/etc/letsencrypt/live/certificate-name"
  2. **RENEWED_DOMAINS** which contains a space delimited list of the
     certificate’s domains and subdomains.
 
@@ -49,15 +49,15 @@ This program can also be run standalone, in which case it makes use of two posit
 
 As we cannot use command line parameters when called as a Certbot renew-hook all other parameters have to set using configuration files. I use the */etc/default/CertbotTLSAgen.cf* for general/global parameters, and similar file placed in the *…/letsencrypt/live* for certificate specific parameters.  The certificate specific parameters override the general/global parameters.
 
+----------
+
 **Installation**
-Copy the all files to a location of your choice. Ensure that the file CertbotTLSAgen has execute permission.
+Copy the all files to a location of your choice. Ensure that CertbotTLSAgen and any CertbotTLSAgen.DNSupdate.\* files are executable.
 Copy the file *CertbotTLSAgen.cf* to */etc/defaults.* and to *…/letsencrypt/live/certificate-name*.
 In /etc/defaults/CertbotTLSAgen.cf change *installPath* to point to CertbotTLSAgen.
 Follow the instruction about activating a renew-hook in the Letsencrypt documentation.
 
-
 ----------
-
 
 **CertbotTLSAgen.cf**
 There are two instances of this file used, the “global” version which is stored in */etc/default*, and the certificate specific instance which is kept in *…/live/cert-name*. The certificate specific version **OVERRIDES** the “global” version. The parameters and their purpose are listed below.
@@ -78,15 +78,15 @@ After the TLSA records have been created they need to be added to your DNS syste
    want to use this facility must be capable of dynamic update.
 
 **TLSA Generator parameters**
-CA_Required=y 	
-CA_Usage=dane-ca
-CA_Selector=pkey
-CA_Type=sha-256
+-  CA_Required=y 	
+-  CA_Usage=dane-ca
+-  CA_Selector=pkey
+-  CA_Type=sha-256
 
-EE_Required=Y
-EE_Usage=dane-ee
-EE_Selector=pkey
-EE_Type=sha-256
+-  EE_Required=Y
+-  EE_Usage=dane-ee
+-  EE_Selector=pkey
+-  EE_Type=sha-256
 
 **TLSA_TTL=1800**
 	The TTL for TLSA records should probably be kept low, probably not more than hour. I use 30 minutes (1800 seconds) as the TTL for TLSA records.
@@ -116,5 +116,4 @@ Do you want the system to automatically remove old/replaced TLSA records automat
 **TLSA_RemoveDelay=5400**
 The approximate length of time in seconds between the installation of new/renewed certificates and the removal of old certificates. 
 
- Written with [StackEdit](https://stackedit.io/).
 
