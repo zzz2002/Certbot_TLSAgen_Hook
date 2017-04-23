@@ -89,7 +89,7 @@ After the TLSA records have been created they need to be added to your DNS syste
 -  EE_Type=sha-256
 
 **TLSA_TTL=1800**
-	The TTL for TLSA records should probably be kept low, probably not more than hour. I use 30 minutes (1800 seconds) as the TTL for TLSA records.
+The TTL for TLSA records should probably be kept low, probably not more than hour. I use 30 minutes (1800 seconds) as the TTL for TLSA records.
 
 **TLSA_AutoRemove=no**
 Do you want the system to automatically remove old/replaced TLSA records automatically, yes or no.
@@ -99,21 +99,10 @@ The approximate length of time in seconds between the installation of new/renewe
 
 
 **outputFilepath=**
-this location defaults to equal RENEWED_LINEAGE.
+This location defaults to RENEWED_LINEAGE.
+
 **logOnly=”no”**
-When running stand alone output messages to the terminal as well as the log, yes or no. 
+When running stand alone output messages to the terminal as well as the log, yes or no.
+
 **logFile=”/var/log/certbot_tlsagen,log”**
 The name and location of the CertbotTLSAgen log file.
-
-
-
->**TLSA_TTL=1800**
-	The TTL for TLSA records should probably be kept low, probably not more than hour. I use 30 minutes (1800 seconds) as the TTL for TLSA records.
-
-**TLSA_AutoRemove=no**
-Do you want the system to automatically remove old/replaced TLSA records automatically, yes or no.
-
-**TLSA_RemoveDelay=5400**
-The approximate length of time in seconds between the installation of new/renewed certificates and the removal of old certificates. 
-
-
