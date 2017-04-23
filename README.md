@@ -104,5 +104,5 @@ This location defaults to RENEWED_LINEAGE.
 **logOnly=”no”**
 When running stand alone output messages to the terminal as well as the log, yes or no.
 
-**logFile=”/var/log/certbot_tlsagen,log”**
+**logFile=”/var/log/certbot_tlsagen.log”**
 The name and location of the CertbotTLSAgen log file.
