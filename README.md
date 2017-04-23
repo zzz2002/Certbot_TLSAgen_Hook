@@ -11,17 +11,14 @@ In addition this script maybe run standalone.
 There are two elements which are used to determine if a TLSA record should be generated and installed.  
 The first is the list of services for which we want TLSA records.  Common services are:
 
-    	 Service                  Port 
-          smtp                    25
-       	  smtps                   465 (I believe that this service is
-       	                               deprecated, and as such should not
-       	                               be used or included).
-          submission              587
-          imap                    143
-          imaps                   993
-          sieve                   4190 (I am not sure if this should be
-				        included) 
-          caldav/carddav/https    443
+	Service                 Port 
+	smtp			25
+	smtps                   465	I believe that this service is deprecated, and as such should not be 
+					used or included.
+	submission		587
+	imaps			993
+	sieve			4190 	I am not sure if this should be include.
+	caldav/carddav/https    443
 
 The second, which is described below, is a list of domains and subdomains that are included in a security certificate.
 For each service that we require a TLSA record for, we check to see if the service host matches one the domains or sub-domains in the certificate. If there is a match we then generate a TLSA record using the port, service host and certificate. We use TCP as the default protocol.
