@@ -20,13 +20,13 @@ R-     n|non|f|faux|0		:# Réponses négatives spécifiques au langage
 #Nombre de variables attendues pour ce message
 # | Texte du message en format printf
 # | |
-I009 1 Les enregistrements de mise à jour TLSA seront placés dans \"TLSA_additions\" et \"TLSA_deletions\" situé en %s
-I010 3 Un enregistrement DANE-CA périmé a été trouvé et répertorié pour suppression. Service %s utilisant le port %s, hébergé par %s.
-I011 3 Un enregistrement DANE-EE périmé a été trouvé et répertorié pour suppression. Service %s utilisant le port %s, hébergé par %s.
-I012 3 Un enregistrement DANE-CA a été généré pour le service %s utilisant le port %s, hébergé par %s.
-I013 3 Un enregistrement DANE-EE a été généré pour le service %s utilisant le port %s, hébergé par %s.
+I009 1 Les enregistrements de mise à jour TLSA seront placés dans des fichiers \"TLSA_additions\" et \"TLSA_deletions\" situé en %s.
+I010 3 Un enregistrement \"DANE-CA\" obsolète a été trouvé et répertorié pour suppression. Service %s utilisant le port %s, hébergé par %s.
+I011 3 Un enregistrement \"DANE-EE\" obsolète a été trouvé et répertorié pour suppression. Service %s utilisant le port %s, hébergé par %s.
+I012 3 Un nouvel enregistrement \"DANE-CA\" a été généré pour le service %s utilisant le port %s, hébergé par %s.
+I013 3 Un nouvel enregistrement \"DANE-EE\" a été généré pour le service %s utilisant le port %s, hébergé par %s.
 I014 1 Une opération de mise à jour DNS pour supprimer les anciens enregistrements TLSA devrait commencer en %u secondes.
-I015 0 Rien à faire, aucun ajout ou suppression requis.
+I015 0 Rien à faire, pas d'\''ajouts ou de suppressions nécessaires.
 #
 W005 1 Utilisation du certificat invalide: %s, par défaut pour dan-ee ou 3.
 W006 1 Sélecteur invalide: %s, par défaut pour pkey ou 1.

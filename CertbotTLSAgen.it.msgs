@@ -21,10 +21,10 @@ R-     n|no|f|falso|0			:# linguaggio specifico risposte negative
 # | Testo del messaggio in formato printf
 # | |
 I009 1 I record di aggiornamento di TLSA verranno inseriti in \"TLSA_additions\" e \"TLSA_deletions\" localizzati in %s
-I010 3 Un record DANE-CA obsoleto è stato trovato e elencato per l'\''eliminazione. Servizio %s usando la porta %s, ospitata da %s.
-I011 3 Un record DANE-EE obsoleto è stato trovato e elencato per l'\''eliminazione. Servizio %s usando la porta %s, ospitata da %s.
-I012 3 Un record DANE-CA è stato generato per il servizio %s utilizzando la porta %s, ospitata da %s.
-I013 3 Un record DANE-EE è stato generato per il servizio %s usando la porta %s, ospitata da %s.
+I010 3 Un record \"DANE-CA\" obsoleto è stato trovato ed elencato per l'\''eliminazione. Servizio %s usando la porta %s, ospitata da %s.
+I011 3 Un record \"DANE-EE\" obsoleto è stato trovato ed elencato per l'\''eliminazione. Servizio %s usando la porta %s, ospitata da %s.
+I012 3 Un nuovo record \"DANE-CA\" è stato generato per il servizio %s usando la porta %s, ospitata da %s.
+I013 3 Un nuovo record \"DANE-EE\" è stato generato per il servizio %s usando la porta %s, ospitata da %s.
 I014 1 Una operazione di aggiornamento DNS per cancellare vecchi record TLSA dovrebbe iniziare in %u secondi.
 I015 0 Niente da fare, nessuna aggiunta o eliminazione richiesta.
 #

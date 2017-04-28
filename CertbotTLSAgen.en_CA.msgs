@@ -21,10 +21,10 @@ R-     n|no||f|false|0            :#  Language specific negative responses
 #    | message text in as a printf format
 #    | |
 I009 1 TLSA update records will be placed in \"TLSA_additions\" and \"TLSA_deletions\" located in %s
-I010 3 A outdated DANE-CA record has been found and listed for deletion. %s service using port %s, hosted by %s.
-I011 3 A outdated DANE-EE record has been found and listed for deletion. %s service using port %s, hosted by %s.
-I012 3 A DANE-CA record has been generated for the %s service using port %s, hosted by %s.
-I013 3 A DANE-EE record has been generated for the %s service using port %s, hosted by %s.
+I010 3 An outdated \"DANE-CA\" record has been found and listed for deletion. %s service using port %s, hosted by %s.
+I011 3 An outdated \"DANE-EE\" record has been found and listed for deletion. %s service using port %s, hosted by %s.
+I012 3 A new \"DANE-CA\" record has been generated for the %s service using port %s, hosted by %s.
+I013 3 A new \"DANE-EE\" record has been generated for the %s service using port %s, hosted by %s.
 I014 1 A DNS update operation to delete old TLSA records should start in %u seconds.
 I015 0 Nothing to do, no addition or deletion required. 
 #
