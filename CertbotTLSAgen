@@ -25,15 +25,18 @@ startTime=10#$(date +%s%N)
 
 positiveResponses='y|yes|t|tue'							#
 negativeResponses='n|no|f|false'						#
-duplicateCA=n
-duplicateEE=n
 defaultUpdateAction='manual'
 
+declare -A messageText								# associative array containing information &  error messages
+declare -a domainSoaData
+
+#
 # Variables derived either from the command line parameters or from the renew-hook environment variables.
+#
 certbotLineage=""								# path to the certbot generated cert ...(RENEWED_LINEAGE or $1)
 declare -a certbotDomains							# An array into which RENEWED_DOMAINS or $2 Domains are split
 
-declare -A messageText								# associative array containing information &  error messages
+
 
 ########################################################################################################
 ################  the following variable can be overriddden/set using the config files #################
@@ -61,7 +64,7 @@ TLSA_AutoRemove=no
 logOnly=no									# temp work around sysout + syslog
 logFile="/var/log/A_tlsagen.log"						# logfile name & path
 
-outputFilepath=									#if not defaults to the cerbot lineage
+outputFilepath=									#if not specified, defaults to the cerbot lineage
 ########################################################################################################
 
 declare -A pseudoSRVrecords							# associative array to be used when SRV records are not available
@@ -145,27 +148,26 @@ loadLanguageDependent() {
     local i
     local j
     while read -r aline; do	
-	    if [[ -n "$aline" ]]; then
-		j="${aline:0:1}"
-		aline="${aline%%\:\#\ \ *}"
-		case "${j^^}" in
-		    I|W|E)
-			i="${aline:0:4}"
-			messageText[${i^^}]=${aline:5}
-			;;
-		    R)
-			[[ "${aline:1:1}" = '+' ]] && { positiveResponses="${aline:7}"; positiveResponses="${positiveResponses// /}"; }
-			[[ "${aline:1:1}" = '-' ]] && { negativeResponses="${aline:7}"; negativeResponses="${negativeResponses// /}"; }
-			;;
-		    M)
-			#  future email message 
-		    ;;
-		    *)
-		        #  any thing else is ignored for the moment
-		    ;;
-		esac
-	    fi
-    done < "$installPath"/CertbotTLSAgen."$1".msgs
+	if [[ -n "$aline" ]]; then
+	    j="${aline:0:1}"
+	    aline="${aline%%\:\#\ \ *}"
+	    case "${j^^}" in
+		I|W|E)
+		    i="${aline:0:4}"
+		    messageText[${i^^}]=${aline:5}
+		;;
+		R)
+		    [[ "${aline:1:1}" = '+' ]] && { positiveResponses="${aline:7}"; positiveResponses="${positiveResponses// /}"; }
+		    [[ "${aline:1:1}" = '-' ]] && { negativeResponses="${aline:7}"; negativeResponses="${negativeResponses// /}"; }
+		;;
+		M)
+		    #  future email message 
+		;;
+		*)	 #  any thing else is ignored for the moment
+		;;
+	    esac
+	fi
+    done < "$installPath"/CertbotTLSAgen."$1".data
 }
 #
 # Check if either the Certbot environment variables or the command line parameters have been set, this may/will depend on how this script is invoked.
@@ -203,9 +205,7 @@ getServiceData() {
 }
 
 getDomainData() {
-    declare -a dnsSOAdata
-    dnsSOAdata=( $(dig +noall +authority SOA "$1") )						# get the SOA data associated with the service (sub)domain 
-    echo "${dnsSOAdata[0]%.}"									# pass back the doamin name
+    dig +noall +authority SOA "$1"							# get the SOA data associated with the service (sub)domain 
 }
 
 #                  THe following code was "borrowed" from Viktor Dukhovni's tlsagen
@@ -235,7 +235,7 @@ generateDigest() {
 # convert the digest data to a hex string, removing any spaces & CRs
 #
     format() {
-	od -vAn -tx1 | tr -d ' \012'
+	od -vAn -tx1 | tr -d ' \012' | tr [:lower:] [:upper:]
     }
 #
 # check and set the usage parameter. If was not understood, set to default 3 and output msg
@@ -288,14 +288,19 @@ generateDigest() {
 #	Check to see if we have a file for $LANG (I use only the language code, I strip off the utf_8)
 #	If so load the language specific file else load the Canadian english as the default
 
-if [ -f $installPath/CertbotTLSAgen."${LANG%%.*}".msgs ]; then
+if [ -f $installPath/CertbotTLSAgen."${LANG%%.*}".data ]; then
     loadLanguageDependent "${LANG%%.*}"
+    languageLoaded=y
 else 
     loadLanguageDependent 'en_CA'
+    languageLoaded=n
 fi
 
 #	normalize variable set after loading the global preferences & language etc
 normalizeSystemVariables
+
+#	output message about missing language dependent data module. Has to wait till now as we were still loading data.
+[[ "$languageLoaded" = n ]] && outputMessage w009 "${LANG%%.*}" "en_CA"
 
 setLineage "$1" || exit				# As a command use $1, as a hook pick up RENEWED_LINEAGE. result certbotLineage
 setDomains "$2" || exit				# As a command use $2, as a hook pick up RENEWED_DOMAINS. result certbotDomains
@@ -309,11 +314,13 @@ normalizeSystemVariables
 #	check to see if the desired DNS update process exists.if not default to manual
 [[ ! -f "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" ]] && { updateAction="$defaultUpdateAction"; outputMessage w008 "$updateAction" "$defaultUpdateAction"; }
 
-
 #	Generate the TLSA key as a HEX string. As we are dealiing with a single certificate do this once 
 [[ "$EE_Record" = n && "$CA_Record" = n ]] && { outputMessage e004; exit; }
 [[ "$CA_Record" = y ]] && dane_caDigest=$( generateDigest  "$CA_Usage" "$CA_Selector" "$CA_Type" "$certbotLineage"'/chain.pem' ) || exit
-[[ "$EE_Record" = y ]] && dane_eeDigest=$( generateDigest  "$EE_Usage" "$EE_Selector" "$EE_Type"  "$certbotLineage"'/cert.pem' ) || exit
+[[ "$EE_Record" = y ]] && dane_eeDigest=$( generateDigest  "$EE_Usage" "$EE_Selector" "$EE_Type" "$certbotLineage"'/cert.pem' ) || exit
+
+# dane_caDigest="${dane_caDigest^^}"
+# dane_eeDigest="${dane_eeDigest^^}"
 
 #	setup where we are going to save the additions and deletions, Would normally be Certbot Lineage, but can be oerridden
 [[ -z "$outputFilepath"  ]] && outputFilepath="$certbotLineage"
@@ -325,32 +332,34 @@ TLSA_add_filename="$outputFilepath"'/TLSA_additions'
 [[ -s "$TLSA_add_filename" ]] && rm "$TLSA_add_filename"
 
 for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)domain listed in the input, check to see if it is a service domain that we might like to have a TLSA record for 
+    duplicateCA=n
+    duplicateEE=n
     targetURL=${certbotDomains[domain]%.}							# I am not sure whether the Cerbot list of (sub)domains has a trailing "."
-    targetDomain=$( getDomainData "$targetURL" )						# get the domain for this (sub)domain 
+    domainSoaData=( $(getDomainData "$targetURL") )						# get the SOA data associated with the service (sub)domain 
     for service in $( seq 0 $((${#services[@]} -1 )) ); do					# Do this for each of the services that might us a TLSA record
 	while read -r _ _ srv_port srv_host; do							# read the out put of a DIG for a SRV record 
 	    if [[ -n "$srv_host" && ${srv_host%.} == $targetURL ]]; then			# if the host returned by dig = the Cerbot target, then process it, else move on
 		digTLSAData=$(dig +short +nosplit _"$srv_port"._tcp."$srv_host" TLSA)
 		while read -r aLine; do
 		    case "${aLine:0:1}" in							# get any tlsa records associated with this 
-			    2)
-				if [[ "${aLine}" = ${dane_caDigest^^} ]]; then
-				    duplicateCA=y
-				else
-				    printf "_%d._tcp.%s TLSA %d %d %d %s\n" "$srv_port" "$srv_host" $aLine >> "$TLSA_delete_filename"
-				    outputMessage i010 "${services[$service]}" "$srv_port" "$srv_host"
-				fi
-			    ;;
-			    3)
-				if [[ "${aLine}" = ${dane_eeDigest^^} ]]; then
-				    duplicateEE=y
-				else
-				    printf "_%d._tcp.%s TLSA %d %d %d %s\n" "$srv_port" "$srv_host" $aLine >> "$TLSA_delete_filename"
-				    outputMessage i011 "${services[$service]}" "$srv_port" "$srv_host"
-				fi
-			    ;;
-			    *)
-			    ;;
+			2)
+			    if [[ "$aLine" = $dane_caDigest ]]; then
+				duplicateCA=y
+			    else
+				printf "_%d._tcp.%s TLSA %d %d %d %s\n" "$srv_port" "$srv_host" $aLine >> "$TLSA_delete_filename"
+				outputMessage i010 "${services[$service]}" "$srv_port" "$srv_host"
+			    fi
+			;;
+			3)
+			    if [[ "$aLine" = $dane_eeDigest ]]; then
+				duplicateEE=y
+			    else
+				printf "_%d._tcp.%s TLSA %d %d %d %s\n" "$srv_port" "$srv_host" $aLine >> "$TLSA_delete_filename"
+				outputMessage i011 "${services[$service]}" "$srv_port" "$srv_host"
+			    fi
+			;;
+			*)
+			;;
 		    esac
 		done <<< "${digTLSAData^^}"
 		if [[ "$CA_Record" = y && "$duplicateCA" = n ]]; then
@@ -362,14 +371,15 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)
 		    outputMessage i013 "${services[$service]}" "$srv_port" "$srv_host"
 		fi
 	    fi
-	done < <(getServiceData "${services[$service]}" "$targetDomain" )
+	done < <(getServiceData "${services[$service]}" "${domainSoaData[0]}" )
     done
 done
-if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
-#	finished creating TLSA update records, now update the DNS by adding records to DNS
-    [[ -s "$TLSA_add_filename" ]] && "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$TLSA_add_filename" >&3 2>&3
 
-#	spawn this to run activating after the remove delay has expired
+#   finished creating TLSA update records, now update the DNS by adding records to DNS
+#   and if there are any to delete spawn the update function  to run activating after the remove delay has expired
+
+if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
+    [[ -s "$TLSA_add_filename" ]] && "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$TLSA_add_filename" >&3 2>&3
     if [[ "$TLSA_AutoRemove" = y && -s "$TLSA_delete_filename" ]]; then
 	outputMessage i014 "$TLSA_RemoveDelay"
 	("$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" "$TLSA_RemoveDelay") >&3 2>&3 < /dev/null & disown
@@ -377,5 +387,6 @@ if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
 else
 	outputMessage i015
 fi
+
 outputMessage i998 $(( ( 10#$(date +%s%N) - startTime ) / 1000000 ))
 exit 0
