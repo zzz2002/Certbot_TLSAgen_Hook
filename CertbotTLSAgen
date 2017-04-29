@@ -23,7 +23,7 @@ shopt -s extglob								# start using bash features right after version check
 
 startTime=10#$(date +%s%N)
 
-positiveResponses='y|yes|t|tue'							#
+positiveResponses='y|yes|t|true'							#
 negativeResponses='n|no|f|false'						#
 defaultUpdateAction='manual'
 
@@ -72,11 +72,12 @@ declare -A pseudoSRVrecords							# associative array to be used when SRV record
 ########################################################################################################
 #
 #	Try and reduce all the variations on yes and no, due to both language and user input to y or n 
+#	Just in case a non-English user has used the english y/yes/... or n/no... append them to the test check.
 #
 normalizeResponse() {
     local x="$1"								# save the input value in x, if we don't understand it then just pass it back unchanged
-    [[ ${1,,} = @($positiveResponses) ]] && x='y'				# if the input variable is one of the positive responses, set x to y
-    [[ ${1,,} = @($negativeResponses) ]] && x='n'				# if the input variable is one of the negative responses, set x to n
+    [[ ${1,,} = @(${positiveResponses}|y|yes|t|true) ]] && x='y'		# if the input variable is one of the positive responses, set x to y
+    [[ ${1,,} = @(${negativeResponses}|n|no|f|false) ]] && x='n'		# if the input variable is one of the negative responses, set x to n
     echo "$x"									# pass back the normalized value or the original
 }
 

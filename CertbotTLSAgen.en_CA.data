@@ -32,7 +32,7 @@ W005 1 Invalid certificate usage: %s, defaulting to dan-ee or 3.
 W006 1 Invalid selector: %s, defaulting to pkey or 1.
 W007 1 Invalid matching type: %s, defaulting to sha-256 or 1.
 W008 2 The DNS update method \"%s\" is not known or is unavailable, switching to the default \"%s\" method.
-W009 2 No langauge dependence module for \"%s\" is available, using the default module \"%s\".
+W009 2 No langauge dependency module for \"%s\" is available, using the default module \"%s\".
 #
 E001 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" was not set.
 E002 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" is not a directory.

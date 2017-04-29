@@ -1,10 +1,13 @@
 #!/bin/bash 
 # -*- mode: sh; -*-
 #
-#Last modified:
-#	2017-04-02
-#	2017-04-07
-#	2017-04-22
+# Parameters passed are
+#	1. action - add or delete
+#	2. file containing the records to be acted upon 
+#	3. the time to wait before carrying out the action desired (usually delete)
+#
+# Last modified:
+#	2017-04-29
 
 if [[ "${SHELL##*/}" != bash || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
     echo "error: script must run in bash version 4.0 or later"
