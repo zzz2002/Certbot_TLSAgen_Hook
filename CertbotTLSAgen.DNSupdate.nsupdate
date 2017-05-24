@@ -29,7 +29,7 @@ if [[ -s "$2" ]]; then
 
     echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^} using records from \"$2\" ended *** exit code: $exitCode"
 else
-    echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^}, \"$2\" is zero length - nothing to do, not waiting exiting immediatly ***"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^}, \"$2\" is zero length - nothing to do, not waiting exiting immediately ***"
     exitCode=0
 fi
 
