@@ -24,7 +24,7 @@ if [[ -s "$2" ]]; then
 	nsupdateInput="${nsupdateInput}${1,,} ""$tlsaRecord\n"
     done < "$2"
 
-    [[ -n "$nsupdateInput" ]] && printf -- "server 127.0.0.1\n${nsupdateInput}send\n" | nsupdate -v -k /etc/bind/rndc.key 2>&1
+    [[ -n "$nsupdateInput" ]] && printf -- "server 127.0.0.1\n${nsupdateInput}send\n" | nsupdate -v -k /var/run/named/session.key 2>&1
     exitCode=$(( PIPESTATUS[0] | PIPESTATUS[1] ))
 
     echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^} using records from \"$2\" ended *** exit code: $exitCode"
