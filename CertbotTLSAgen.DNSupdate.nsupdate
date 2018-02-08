@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 # -*- mode: sh; -*-
 #
 # Parameters passed are
@@ -6,8 +6,13 @@
 #	2. file containing the records to be acted upon 
 #	3. the time to wait before carrying out the action desired (usually delete)
 #
-# Last modified:
+Last modified:
+#	2017-04-02
+#	2017-04-07
+#	2017-04-22
 #	2017-04-29
+#	2017-10-15 added comments and removed some redundant code
+#	2018-01-29
 
 if [[ "${SHELL##*/}" != bash || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
     echo "error: script must run in bash version 4.0 or later"
@@ -16,21 +21,29 @@ if [[ "${SHELL##*/}" != bash || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
 fi
 shopt -s extglob
 
+#
+#	Certbot TLSAgen DNS update using nsupdate for Bind9
+#	   there are three input paramaeters for this script
+#		1 the action add or delete
+#		2 the file containing the records to be added to or deleted from the DNS zone
+
+# check to see if the input file contains any records, if yes proceed, if no the log a info message and exit.
 if [[ -s "$2" ]]; then
-    removeDelay=${3#-}
-    [[ "$removeDelay" -gt 0 ]] && sleep "$removeDelay"
-    
-    while read tlsaRecord; do
-	nsupdateInput="${nsupdateInput}${1,,} ""$tlsaRecord\n"
-    done < "$2"
-
-    [[ -n "$nsupdateInput" ]] && printf -- "server 127.0.0.1\n${nsupdateInput}send\n" | nsupdate -v -k /var/run/named/session.key 2>&1
-    exitCode=$(( PIPESTATUS[0] | PIPESTATUS[1] ))
-
-    echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^} using records from \"$2\" ended *** exit code: $exitCode"
+#
+#	create the nsupdate input from the requested action and file 
+#
+	while read -r tlsaRecord; do
+	    printf -- "server 127.0.0.1\n%s %s\nsend\nquit\n" "${1,,}" "$tlsaRecord" | nsupdate -v -k /var/run/named/session.key 2>&1
+	    exitCode=$((PIPESTATUS+exitCode)) 
+	done < "$2"
+#
+	echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^} using records from \"$2\" ended *** exit code: $exitCode"
 else
-    echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^}, \"$2\" is zero length - nothing to do, not waiting exiting immediately ***"
-    exitCode=0
+#
+#	there was nothing to do, log a message and set the exit code to zero
+#
+	echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^}, \"$2\" is zero length - nothing to do, not waiting exiting immediatly ***"
+	exitCode=0
 fi
 
 exit "$exitCode"

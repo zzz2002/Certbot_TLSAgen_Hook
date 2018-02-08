@@ -11,7 +11,8 @@
 #	Autre
 #		M est provisoirement réservé pour le courrier électronique, mais il n'a pas encore été mis en œuvre.
 #
-#	** les commentaires peuvent être ajoutés aux lignes en les précisant avec ': # "quoi que ce soit après que cela sera ignoré
+#	** les commentaires peuvent être ajoutés aux lignes en les précisant avec '
+#          quoi que ce soit après que cela sera ignoré
 #
 R+     o|oui|v|vrai|1		:# Réponses positives spécifiques au langage
 R-     n|non|f|faux|0		:# Réponses négatives spécifiques au langage

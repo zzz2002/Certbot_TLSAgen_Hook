@@ -1,9 +1,9 @@
 #
 #
-#installPath="/usr/local/bin"	# where we are installed/stored
+#declare -r installPath="/usr/local/bin"	# where we are installed/stored, use declare -r to make it read only
 #
 #	Which services do we want TLSA records for, services is an array of servics we want TLSA records for
-#services=( smtp smtps submission imap sieve dav davical https 
+#services=( smtp smtps submission imap sieve dav davical https )
 #
 #
 #updateAction="manual"
@@ -17,16 +17,16 @@
 #
 #	The following parameters will produce 2 1 1 Certificate Authority certificate
 #CA_Required=y
-#CA_Usage=dane-ca					#	TLSA usage 	also seen as 3 in TLSA records
+#CA_Usage=dane-ca					#	TLSA usage	also seen as 3 in TLSA records
 #CA_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
-#CA_Type=sha-256						#	TLSA type	also seen as 1 in TLSA records
+#CA_Type=sha-256					#	TLSA type	also seen as 1 in TLSA records
 #
 #	The following parameters will produce 3 1 1 TLSA certificate
 #
 #EE_Required=y
-#EE_Usage=dane-ee					#	TLSA usage 	also seen as 3 in TLSA records
+#EE_Usage=dane-ee					#	TLSA usage	also seen as 3 in TLSA records
 #EE_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
-#EE_Type=sha-256						#	TLSA type	also seen as 1 in TLSA records
+#EE_Type=sha-256					#	TLSA type	also seen as 1 in TLSA records
 #
 #
 #	The TTL for TLSA records should be kept low, probably not more the 1 hour. If a certificate is compromised you want the 
@@ -46,7 +46,7 @@
 #outputFilepath="/tmp"
 #
 #
-#logOny="no" 						# When running standalone output messages to stdout
+#logOny="no"						# When running standalone output messages to stdout
 #logFile="/var/log/tlsagen.log"				# Name and location of the log file associated with this app
 #
 ####################################################################################################################################

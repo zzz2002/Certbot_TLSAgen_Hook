@@ -23,12 +23,12 @@ shopt -s extglob								# start using bash features right after version check
 
 startTime=10#$(date +%s%N)
 
-positiveResponses='y|yes|t|true'							#
-negativeResponses='n|no|f|false'						#
+positiveResponses='y|yes|t|true'
+negativeResponses='n|no|f|false'
 defaultUpdateAction='manual'
 
 declare -A messageText								# associative array containing information &  error messages
-declare -a domainSoaData
+declare -a domainSOAdata
 
 #
 # Variables derived either from the command line parameters or from the renew-hook environment variables.
@@ -45,29 +45,29 @@ installPath="/root"								# where we are installed/stored
 
 declare -a services=( smtp smtps submission imap sieve dav davical https )	# array of servics we want TLSA records for
 
-updateAction="manual"								# what DNS update process(?) to use
+updateAction="manual"								# which DNS update process(?) to use
 
-CA_Record=y
+CA_Record=y									# do we want dane-ca/ta records
 CA_Usage=dane-ca								# dane-ca/ta usage 
 CA_Selector=pkey								# dane-ca/ta selector 
 CA_Type=sha-256									# dane-ca/ta type
 
-EE_Record=y
+EE_Record=y									# do we want dane-ee records
 EE_Usage=dane-ee								# dane-ee usage - always dan-ee
 EE_Selector=pkey								# dane-ee selector 
 EE_Type=sha-256									# dane-ee type
 
 TLSA_TTL=1800									# TLSA DNS record TTL in seconds 
 TLSA_RemoveDelay=3600								# the interval in seconds between adding new TLSA records and removing the old ones.
-TLSA_AutoRemove=no
+TLSA_AutoRemove=no								# Do we want the automatically remove old records.										# The removal process is done by spawning a background process that waits until the TLSA_RemoveDelay interval has passed.
 
 logOnly=no									# temp work around sysout + syslog
-logFile="/var/log/A_tlsagen.log"						# logfile name & path
+logFile="/var/log/Certbot_tlsagen.log"						# logfile name & path
 
 outputFilepath=									#if not specified, defaults to the cerbot lineage
 ########################################################################################################
 
-declare -A pseudoSRVrecords							# associative array to be used when SRV records are not available
+declare -A pseudoSRVrecords							# associative array to be used when DNS SRV records are not available
 
 ########################################################################################################
 #
@@ -195,18 +195,23 @@ setDomains() {
 	fi
 }
 #
-#	these two function need to have error handling added
 #
 getServiceData() {
+    declare -a abc
     if [ ${#pseudoSRVrecords[@]} -le 0 ]; then							# are we using pseudo SRV records
-	dig +short _"$1"._tcp."$2" SRV								# No, use dig to get SRV records 
-    else
-	echo 0 0 "${pseudoSRVrecords[$1.$2]}"							# yes, use the pseudo record data to emulate dig
+	abc=($(dig @localhost +short _"$1"._tcp."$2" SRV ))						# No, use dig to get SRV records 
+        if [ ${#abc[@]} -le 0 ]; then								# did dig return anything
+	    echo "0" "service.not.found."
+	else
+	    echo ${abc[2]} ${abc[3]}								# yes, pass back port and subdomain to the caller
+	fi
+    else											# we are using pseudo SRV records
+	if [ ${#pseudoSRVrecords[$1.$2]} -le 0 ]; then						# do we have one for this (sub)domain
+	    echo "0" "service.not.found."
+	else
+	    echo ${pseudoSRVrecords[$1.$2]}							# yes, use the pseudo record data to emulate dig
+	fi
     fi
-}
-
-getDomainData() {
-    dig +noall +authority SOA "$1"							# get the SOA data associated with the service (sub)domain 
 }
 
 #                  THe following code was "borrowed" from Viktor Dukhovni's tlsagen
@@ -280,15 +285,16 @@ generateDigest() {
 
 #=====================================================================================================================================================================
 #	My understanding is that we cannot use command line parameters when this is called as a certbots renew-hook.
-#	They will have to go somewhere else, I chose to use /etc/default/CertbotTLSAgen.cf for general use preferences
-#	And use a similar file placed in the ...../letsencrypt/live/$certname/hookname for certificate specifice data
+#	They will have to go somewhere else,
+#		I chose to use /etc/default/CertbotTLSAgen.cf for general use preferences
+#		And use a similar file placed in the ...../letsencrypt/live/$certname for certificate specifice data
 
 #	Load global user preferences (/etc/default/CertbotTLSAgen.cf)
 [[ -f /etc/default/CertbotTLSAgen.cf ]] && . /etc/default/CertbotTLSAgen.cf
 
 #	Check to see if we have a file for $LANG (I use only the language code, I strip off the utf_8)
-#	If so load the language specific file else load the Canadian english as the default
-
+#	If so load the language specific file else load the Canadian english as the default and
+#	output message about missing language dependent data module. Has to wait till now as we were still loading data.
 if [ -f $installPath/CertbotTLSAgen."${LANG%%.*}".data ]; then
     loadLanguageDependent "${LANG%%.*}"
 else 
@@ -302,8 +308,9 @@ setDomains "$2" || exit				# As a command use $2, as a hook pick up RENEWED_DOMA
 #	Load "certificate specific" preferences here.
 [[ -f "$certbotLineage"/CertbotTLSAgen.cf ]] && . "$certbotLineage"/CertbotTLSAgen.cf
 
-#	normalize variable set after loading the certificate specific information
+#	normalize variable set after loading the global and certificate specific information
 normalizeSystemVariables
+
 #	check to see if the desired DNS update process exists.if not default to manual
 [[ ! -f "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" ]] && { updateAction="$defaultUpdateAction"; outputMessage w008 "$updateAction" "$defaultUpdateAction"; }
 
@@ -311,9 +318,6 @@ normalizeSystemVariables
 [[ "$EE_Record" = n && "$CA_Record" = n ]] && { outputMessage e004; exit; }
 [[ "$CA_Record" = y ]] && dane_caDigest=$( generateDigest  "$CA_Usage" "$CA_Selector" "$CA_Type" "$certbotLineage"'/chain.pem' ) || exit
 [[ "$EE_Record" = y ]] && dane_eeDigest=$( generateDigest  "$EE_Usage" "$EE_Selector" "$EE_Type" "$certbotLineage"'/cert.pem' ) || exit
-
-# dane_caDigest="${dane_caDigest^^}"
-# dane_eeDigest="${dane_eeDigest^^}"
 
 #	setup where we are going to save the additions and deletions, Would normally be Certbot Lineage, but can be oerridden
 [[ -z "$outputFilepath"  ]] && outputFilepath="$certbotLineage"
@@ -324,22 +328,26 @@ TLSA_delete_filename="$outputFilepath"'/TLSA_deletions'
 TLSA_add_filename="$outputFilepath"'/TLSA_additions'
 [[ -s "$TLSA_add_filename" ]] && rm "$TLSA_add_filename"
 
-for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)domain listed in the input, check to see if it is a service domain that we might like to have a TLSA record for 
+for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)domain listed in the input, check to see if it is a service domain 
+												# that we might like to have a TLSA record for 
     duplicateCA=n
     duplicateEE=n
-    targetURL=${certbotDomains[domain]%.}							# I am not sure whether the Cerbot list of (sub)domains has a trailing "."
-    domainSoaData=( $(getDomainData "$targetURL") )						# get the SOA data associated with the service (sub)domain 
+
+    targetURL=${certbotDomains[domain]}								# I am not sure whether the Cerbot list of (sub)domains has a trailing "."
+
+    domainSOAdata=($(dig +noall +authority @localhost SOA "$targetURL" ))					# get the SOA data associated with the service (sub)domain 
+
     for service in $( seq 0 $((${#services[@]} -1 )) ); do					# Do this for each of the services that might us a TLSA record
-	while read -r _ _ srv_port srv_host; do							# read the out put of a DIG for a SRV record 
+	while read -r srv_port srv_host; do							# read the out put of a DIG for a SRV record 
 	    if [[ -n "$srv_host" && ${srv_host%.} == $targetURL ]]; then			# if the host returned by dig = the Cerbot target, then process it, else move on
-		digTLSAData=$(dig +short +nosplit _"$srv_port"._tcp."$srv_host" TLSA)
+		digTLSAData=$(dig +short +nosplit @localhost _"$srv_port"._tcp."$srv_host" TLSA )
 		while read -r aLine; do
 		    case "${aLine:0:1}" in							# get any tlsa records associated with this 
-			2)
+		        2)
 			    if [[ "$aLine" = $dane_caDigest ]]; then
-				duplicateCA=y
+			        duplicateCA=y
 			    else
-				printf "_%d._tcp.%s TLSA %d %d %d %s\n" "$srv_port" "$srv_host" $aLine >> "$TLSA_delete_filename"
+				printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $aLine >> "$TLSA_delete_filename"
 				outputMessage i010 "${services[$service]}" "$srv_port" "$srv_host"
 			    fi
 			;;
@@ -347,7 +355,7 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)
 			    if [[ "$aLine" = $dane_eeDigest ]]; then
 				duplicateEE=y
 			    else
-				printf "_%d._tcp.%s TLSA %d %d %d %s\n" "$srv_port" "$srv_host" $aLine >> "$TLSA_delete_filename"
+				printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $aLine >> "$TLSA_delete_filename"
 				outputMessage i011 "${services[$service]}" "$srv_port" "$srv_host"
 			    fi
 			;;
@@ -355,30 +363,45 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)
 			;;
 		    esac
 		done <<< "${digTLSAData^^}"
+
 		if [[ "$CA_Record" = y && "$duplicateCA" = n ]]; then
 		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $dane_caDigest >> "$TLSA_add_filename"
 		    outputMessage i012 "${services[$service]}" "$srv_port" "$srv_host"
 		fi
+
 		if [[ "$EE_Record" = y && "$duplicateEE" = n ]]; then
 		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $dane_eeDigest >> "$TLSA_add_filename"
 		    outputMessage i013 "${services[$service]}" "$srv_port" "$srv_host"
 		fi
 	    fi
-	done < <(getServiceData "${services[$service]}" "${domainSoaData[0]}" )
+	done < <(getServiceData "${services[$service]}" "${domainSOAdata[0]}" )
     done
 done
+#
+#	finished creating TLSA update records, now update the DNS by adding records to DNS, and 
+#	if there are any to delete spawn the update function to run as a background task - it should sleep until the remove delay has expired
 
-#   finished creating TLSA update records, now update the DNS by adding records to DNS
-#   and if there are any to delete spawn the update function  to run activating after the remove delay has expired
+#	 check to see if there is anything to do
 
 if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
-    [[ -s "$TLSA_add_filename" ]] && "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$TLSA_add_filename" >&3 2>&3
+
+#   Yes
+#   anything to add
+
+    if [[ -s "$TLSA_add_filename" ]]; then
+#	outputMessage i014
+	"$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$TLSA_add_filename" 0 >&3 2>&3
+    fi
+
+#   anything to delete
+
     if [[ "$TLSA_AutoRemove" = y && -s "$TLSA_delete_filename" ]]; then
-	outputMessage i014 "$TLSA_RemoveDelay"
-	("$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" "$TLSA_RemoveDelay") >&3 2>&3 < /dev/null & disown
+	outputMessage i015 "$TLSA_RemoveDelay"
+#	setsid "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" "$TLSA_RemoveDelay" >&3 2>&3 < /dev/null & disown
+#	echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" | at $("$TLSA_RemoveDelay"/60)#  >&3 2>&3 < /dev/null & disown
     fi
 else
-	outputMessage i015
+	outputMessage i016
 fi
 
 outputMessage i998 $(( ( 10#$(date +%s%N) - startTime ) / 1000000 ))
