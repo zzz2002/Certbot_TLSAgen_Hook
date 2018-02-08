@@ -286,12 +286,6 @@ generateDigest() {
 #	Load global user preferences (/etc/default/CertbotTLSAgen.cf)
 [[ -f /etc/default/CertbotTLSAgen.cf ]] && . /etc/default/CertbotTLSAgen.cf
 
-#	Load "certificate specific" preferences here.
-[[ -f "$certbotLineage"/CertbotTLSAgen.cf ]] && . "$certbotLineage"/CertbotTLSAgen.cf
-
-#	normalize variable set after loading the certificate specific information
-normalizeSystemVariables
-
 #	Check to see if we have a file for $LANG (I use only the language code, I strip off the utf_8)
 #	If so load the language specific file else load the Canadian english as the default
 
@@ -299,13 +293,17 @@ if [ -f $installPath/CertbotTLSAgen."${LANG%%.*}".data ]; then
     loadLanguageDependent "${LANG%%.*}"
 else 
     loadLanguageDependent 'en_CA'
-#	output message about missing language dependent data module. Has to wait till now as we were still loading data.
-    outputMessage w009 "${LANG%%.*}" "en_CA"
+    outputMessage w009 "${LANG%%.*}" "en_CA"    # output message about missing language dependent data module.
 fi
 
 setLineage "$1" || exit				# As a command use $1, as a hook pick up RENEWED_LINEAGE. result certbotLineage
 setDomains "$2" || exit				# As a command use $2, as a hook pick up RENEWED_DOMAINS. result certbotDomains
 
+#	Load "certificate specific" preferences here.
+[[ -f "$certbotLineage"/CertbotTLSAgen.cf ]] && . "$certbotLineage"/CertbotTLSAgen.cf
+
+#	normalize variable set after loading the certificate specific information
+normalizeSystemVariables
 #	check to see if the desired DNS update process exists.if not default to manual
 [[ ! -f "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" ]] && { updateAction="$defaultUpdateAction"; outputMessage w008 "$updateAction" "$defaultUpdateAction"; }
 
