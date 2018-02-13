@@ -336,12 +336,21 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)
 
     targetURL=${certbotDomains[domain]}								# I am not sure whether the Cerbot list of (sub)domains has a trailing "."
 
+<<<<<<< HEAD
     domainSOAdata=($(dig @localhost +noall +authority SOA "$targetURL" ))			# get the SOA data associated with the service (sub)domain 
 
     for service in $( seq 0 $((${#services[@]} -1 )) ); do					# Do this for each of the services that might us a TLSA record
 	while read -r srv_port srv_host; do							# read the out put of a DIG for a SRV record 
 	    if [[ -n "$srv_host" && ${srv_host%.} == $targetURL ]]; then			# if the host returned by DIG = the Cerbot target, then process it, else move on
 		digTLSAData=$(dig +short +nosplit @localhost _"$srv_port"._tcp."$srv_host" TLSA )
+=======
+    domainSOAdata=($(dig @localhost +noall +authority SOA "$targetURL" ))					# get the SOA data associated with the service (sub)domain 
+
+    for service in $( seq 0 $((${#services[@]} -1 )) ); do					# Do this for each of the services that might us a TLSA record
+	while read -r srv_port srv_host; do							# read the out put of a DIG for a SRV record 
+	    if [[ -n "$srv_host" && ${srv_host%.} == $targetURL ]]; then			# if the host returned by dig = the Cerbot target, then process it, else move on
+		digTLSAData=$(dig @localhost +short +nosplit _"$srv_port"._tcp."$srv_host" TLSA )
+>>>>>>> eeede8ac1f5742aaa65c90b5b696a3db3cbc101f
 		while read -r aLine; do
 		    case "${aLine:0:1}" in							# get any tlsa records associated with this 
 		        2)
