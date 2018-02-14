@@ -391,14 +391,14 @@ if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
 
     if [[ -s "$TLSA_add_filename" ]]; then
 #	outputMessage i014
-	"$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$TLSA_add_filename" 0 >&3 2>&3
+	"$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$TLSA_add_filename" >&3 2>&3
     fi
 
 #   anything to delete
 
     if [[ "$TLSA_AutoRemove" = y && -s "$TLSA_delete_filename" ]]; then
 	outputMessage i015 "$TLSA_RemoveDelay"
-#	setsid "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" "$TLSA_RemoveDelay" >&3 2>&3 < /dev/null & disown
+#	setsid "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" >&3 2>&3 < /dev/null & disown
 #	echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" | at $("$TLSA_RemoveDelay"/60)#  >&3 2>&3 < /dev/null & disown
     fi
 else
