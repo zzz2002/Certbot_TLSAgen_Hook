@@ -8,7 +8,7 @@ In addition this script maybe run standalone.
 
 **How it works**
 
-There are two elements which are used to determine if a TLSA record should be generated and installed.  
+There are two elements which are used to determine if a TLSA record should be generated and installed.
 The first is the list of services for which we want TLSA records.  Common services are:
 
 	Service                 Port 
@@ -78,12 +78,12 @@ After the TLSA records have been created they need to be added to your DNS syste
    want to use this facility must be capable of dynamic update.
 
 **TLSA Generator parameters**
--  CA_Required=y 	
+-  CA_Required=y
 -  CA_Usage=dane-ca
 -  CA_Selector=pkey
 -  CA_Type=sha-256
 
--  EE_Required=Y
+-  EE_Required=y
 -  EE_Usage=dane-ee
 -  EE_Selector=pkey
 -  EE_Type=sha-256
@@ -96,7 +96,6 @@ Do you want the system to automatically remove old/replaced TLSA records automat
 
 **TLSA_RemoveDelay=5400**
 The approximate length of time in seconds between the installation of new/renewed certificates and the removal of old certificates. 
-
 
 **outputFilepath=**
 This location defaults to RENEWED_LINEAGE.
