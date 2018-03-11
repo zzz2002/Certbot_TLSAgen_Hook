@@ -22,7 +22,7 @@ if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
 fi
 shopt -s extglob								# start using bash features right after version check
 
-startTime=10#$(date +%s%N)
+#startTime=10#$(date +%s%N)
 
 positiveResponses='y|yes|t|true'
 negativeResponses='n|no|f|false'
@@ -60,7 +60,8 @@ EE_Type=sha-256									# dane-ee type
 
 TLSA_TTL=1800									# TLSA DNS record TTL in seconds 
 TLSA_RemoveDelay=3600								# the interval in seconds between adding new TLSA records and removing the old ones.
-TLSA_AutoRemove=no								# Do we want the automatically remove old records.										# The removal process is done by spawning a background process that waits until the TLSA_RemoveDelay interval has passed.
+TLSA_AutoRemove=no								# Do we want the automatically remove old records.
+										# The removal process is done by spawning a background process that waits until the TLSA_RemoveDelay interval has passed.
 
 logOnly=no									# temp work around sysout + syslog
 logFile="/var/log/Certbot_tlsagen.log"						# logfile name & path
@@ -142,7 +143,7 @@ outputMessage() {
 #		-  negative responses n/no/f/false...   n/non/f/faux ...
 #	M email message text(s)
 #
-#	the next three charcaters are dependent on the purpose, for messages it deines the message. 
+#	the next three characters are dependent on the purpose, for messages it defines the message. 
 #	the next column defines for messages the number of fields in the message.
 #
 loadLanguageDependent() {
@@ -198,9 +199,9 @@ setDomains() {
 #
 #
 getServiceData() {
-    declare -a abc
+    local -a abc
     if [ ${#pseudoSRVrecords[@]} -le 0 ]; then							# are we using pseudo SRV records
-	abc=($(dig @localhost +short _"$1"._tcp."$2" SRV ))						# No, use dig to get SRV records 
+	abc=($(dig @localhost +short _"$1"._tcp."$2" SRV ))					# No, use dig to get SRV records 
         if [ ${#abc[@]} -le 0 ]; then								# did dig return anything
 	    echo "0" "service.not.found."
 	else
@@ -329,6 +330,8 @@ TLSA_delete_filename="$outputFilepath"'/TLSA_deletions'
 TLSA_add_filename="$outputFilepath"'/TLSA_additions'
 [[ -s "$TLSA_add_filename" ]] && rm "$TLSA_add_filename"
 
+declare -u aLine										# make sure aLine is uppercase
+
 for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)domain listed in the input, check to see if it is a service domain 
 												# that we might like to have a TLSA record for 
     duplicateCA=n
@@ -336,16 +339,15 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)
 
     targetURL=${certbotDomains[domain]}								# I am not sure whether the Cerbot list of (sub)domains has a trailing "."
 
-    domainSOAdata=($(dig @localhost +noall +authority SOA "$targetURL" ))			# get the SOA data associated with the service (sub)domain 
+    domainSOAdata=($(dig @localhost +noall +authority SOA "$targetURL" ))					# get the SOA data associated with the service (sub)domain 
 
     for service in $( seq 0 $((${#services[@]} -1 )) ); do					# Do this for each of the services that might us a TLSA record
 	while read -r srv_port srv_host; do							# read the out put of a DIG for a SRV record 
-	    if [[ -n "$srv_host" && ${srv_host%.} == $targetURL ]]; then			# if the host returned by DIG = the Cerbot target, then process it, else move on
-		digTLSAData=$(dig @localhost +short +nosplit @localhost _"$srv_port"._tcp."$srv_host" TLSA )
+	    if [[ -n "$srv_host" && "${srv_host%.}" == "$targetURL" ]]; then			# if the host returned by dig = the Cerbot target, then process it, else move on
 		while read -r aLine; do
 		    case "${aLine:0:1}" in							# get any tlsa records associated with this 
 		        2)
-			    if [[ "$aLine" = $dane_caDigest ]]; then
+			    if [[ "$aLine" = "$dane_caDigest" ]]; then
 			        duplicateCA=y
 			    else
 				printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $aLine >> "$TLSA_delete_filename"
@@ -353,7 +355,7 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)
 			    fi
 			;;
 			3)
-			    if [[ "$aLine" = $dane_eeDigest ]]; then
+			    if [[ "$aLine" = "$dane_eeDigest" ]]; then
 				duplicateEE=y
 			    else
 				printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $aLine >> "$TLSA_delete_filename"
@@ -363,7 +365,7 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)
 			*)
 			;;
 		    esac
-		done <<< "${digTLSAData^^}"
+		done < <(dig @localhost +short +nosplit _"$srv_port"._tcp."$srv_host" TLSA )
 
 		if [[ "$CA_Record" = y && "$duplicateCA" = n ]]; then
 		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $dane_caDigest >> "$TLSA_add_filename"
@@ -391,19 +393,19 @@ if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
 
     if [[ -s "$TLSA_add_filename" ]]; then
 #	outputMessage i014
-	"$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$TLSA_add_filename" >&3 2>&3
+	"$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$TLSA_add_filename" 0 >&3 2>&3
     fi
 
 #   anything to delete
 
     if [[ "$TLSA_AutoRemove" = y && -s "$TLSA_delete_filename" ]]; then
 	outputMessage i015 "$TLSA_RemoveDelay"
-#	setsid "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" >&3 2>&3 < /dev/null & disown
+#	setsid "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" "$TLSA_RemoveDelay" >&3 2>&3 < /dev/null & disown
 #	echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" | at $("$TLSA_RemoveDelay"/60)#  >&3 2>&3 < /dev/null & disown
     fi
 else
 	outputMessage i016
 fi
 
-outputMessage i998 $(( ( 10#$(date +%s%N) - startTime ) / 1000000 ))
+#outputMessage i998 $(( ( 10#$(date +%s%N) - startTime ) / 1000000 ))
 exit 0
