@@ -27,7 +27,8 @@ shopt -s extglob
 #	   there are three input paramaeters for this script
 #		1 the action add or delete
 #		2 the file containing the records to be added to or deleted from the DNS zone
-#		3 NOT used in this  unit, the delay between running the TLSA generator and action of removing old tlsa records. usually their TTL 
+#		3 NOT used in this  unit, the delay between running the TLSA generator and removing old tlsa records. 
+#		  Usually their TTL or a multiple thereof
 
 # check to see if the input file contains any records, if yes proceed, if no the log a info message and exit.
 if [[ -s "$2" ]]; then
