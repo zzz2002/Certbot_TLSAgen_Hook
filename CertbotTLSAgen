@@ -1,4 +1,5 @@
 #!/bin/bash
+# set -x
 # -*- mode: bash; -*-
 # Copyright (c) 2017 John L. Allen
 # This program is free software: you can redistribute it and/or modify it under the terms of the 
@@ -14,6 +15,7 @@
 #	2017-04-07
 #	2017-04-07 20:30
 #	2018-02-09 16:00EST
+#	2018-08-13 14:40
 #=============
 if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
     echo "error: script must run in bash version 4.0 or later"
@@ -36,8 +38,6 @@ declare -a domainSOAdata
 #
 certbotLineage=""								# path to the certbot generated cert ...(RENEWED_LINEAGE or $1)
 declare -a certbotDomains							# An array into which RENEWED_DOMAINS or $2 Domains are split
-
-
 
 ########################################################################################################
 ################  the following variable can be overriddden/set using the config files #################
@@ -64,7 +64,7 @@ TLSA_AutoRemove=no								# Do we want the automatically remove old records.
 										# The removal process is done by spawning a background process that waits until the TLSA_RemoveDelay interval has passed.
 
 logOnly=no									# temp work around sysout + syslog
-logFile="/var/log/Certbot_tlsagen.log"						# logfile name & path
+logFile="/var/log/letsencrypt/tlsagen.log"					# logfile name & path
 
 outputFilepath=									#if not specified, defaults to the cerbot lineage
 ########################################################################################################
@@ -294,6 +294,11 @@ generateDigest() {
 #	Load global user preferences (/etc/default/CertbotTLSAgen.cf)
 [[ -f /etc/default/CertbotTLSAgen.cf ]] && . /etc/default/CertbotTLSAgen.cf
 
+#	normalize variable set after loading the global and certificate specific information
+#	This has to be done twice, now after reading (loading) the global settings 
+#       and then again after we have validated the the domain/cert specific settings 
+normalizeSystemVariables
+
 #	Check to see if we have a file for $LANG (I use only the language code, I strip off the utf_8)
 #	If so load the language specific file else load the Canadian english as the default and
 #	output message about missing language dependent data module. Has to wait till now as we were still loading data.
@@ -311,6 +316,7 @@ setDomains "$2" || exit				# As a command use $2, as a hook pick up RENEWED_DOMA
 [[ -f "$certbotLineage"/CertbotTLSAgen.cf ]] && . "$certbotLineage"/CertbotTLSAgen.cf
 
 #	normalize variable set after loading the global and certificate specific information
+#	Run this now that we have loaded the certificate specfic variable (if any)
 normalizeSystemVariables
 
 #	check to see if the desired DNS update process exists.if not default to manual
@@ -399,9 +405,9 @@ if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
 #   anything to delete
 
     if [[ "$TLSA_AutoRemove" = y && -s "$TLSA_delete_filename" ]]; then
-	outputMessage i015 "$TLSA_RemoveDelay"
-#	echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" | at $("$TLSA_RemoveDelay"/60)#  >&3 2>&3 < /dev/null & disown
-	echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" | at now + $((TLSA_RemoveDelay/60)) minutes #  >&3 2>&3 < /dev/null & disown
+ 	outputMessage i015 "$TLSA_RemoveDelay"
+# 	echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" | at $("$TLSA_RemoveDelay"/60)#  >&3 2>&3 < /dev/null & disown
+ 	echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" | at now + $((TLSA_RemoveDelay/60)) minutes #  >&3 2>&3 < /dev/null & disown
     fi
 else
 	outputMessage i016

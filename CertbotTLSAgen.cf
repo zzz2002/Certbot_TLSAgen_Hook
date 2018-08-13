@@ -47,7 +47,7 @@
 #
 #
 #logOny="no"						# When running standalone output messages to stdout
-#logFile="/var/log/tlsagen.log"				# Name and location of the log file associated with this app
+#logFile="/var/log/letsencrypt/tlsagen.log"		# Name and location of the log file associated with this app
 #
 ####################################################################################################################################
 ####################################################################################################################################
