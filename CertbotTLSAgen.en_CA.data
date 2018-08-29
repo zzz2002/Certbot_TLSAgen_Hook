@@ -4,12 +4,14 @@
 #	R - response values yes/no/true/false. 
 #		+ for positive values yes...
 #		- for negative values no...
-#	Messages start with I/W/E 
-#		I for inforamtional messages
-#		W for warnings, usually situations where there is a reasonable default that can be used when the users intent is not clear
-#		E for error messages, for situations where the app cannot continue because of missing or invalid information
+#	Messages start with #/I/W/E
+#		# Comment
+#		I informational messages
+#		W warnings, usually situations where there is a reasonable default that can be used and the users intent is not clear
+#		E error messages, for situations where the app cannot continue because of missing or invalid information
+#		F Fatal Errors, **NOT currently used**
 #	Other
-#		M is tentatively reserved for email text, but it has not been implemented yet.
+#		M is tentatively reserved for email text/address ..., but it has not been implemented yet.
 #
 #	** comments may be added to lines by prefixing them with ':#" anything after that will be ignored
 #
@@ -20,7 +22,7 @@ R-     n|no||f|false|0            :#  Language specific negative responses
 #    number of variables expected for this message
 #    | message text in as a printf format
 #    | |
-I009 1 TLSA update records will be placed in \"TLSA_additions\" and \"TLSA_deletions\" located in %s
+I009 1 Any TLSA update records generated, will be placed in \"TLSA_additions\" and/or \"TLSA_deletions\" located in %s
 I010 3 An outdated DANE-CA record has been found and listed for deletion. %s service using port %s, hosted by %s.
 I011 3 An outdated DANE-EE record has been found and listed for deletion. %s service using port %s, hosted by %s.
 I012 3 A DANE-CA record has been generated for the %s service using port %s, hosted by %s.
