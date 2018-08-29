@@ -9,7 +9,7 @@
 #updateAction="manual"
 #	After the TLSA records have bee created they need tobe added to your DNS system.
 #	the methodes currently available are:
-#		manual		-	the system takes no action. To add the TLSA records to your DNS, you must do the updatethe zone files  manually.
+#		manual	- the system takes no action. To add the TLSA records to your DNS, you must do the updatethe zone files  manually.
 #
 #	The TTL for TLSA records should be kept low, probably not more the 1 hour. If a certificate is compromised you want the 
 #	TLSA records associated with the compromised cert to expire ASAP so that they show up as invalid ASAP.
