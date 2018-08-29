@@ -1,10 +1,12 @@
 #!/bin/bash
 # -*- mode: sh; -*-
 #
-# Parameters passed are
-#	1. action - add or delete
-#	2. file containing the records to be acted upon 
-#	3. the time to wait before carrying out the action desired (usually delete)
+if [[ "${SHELL##*/}" != bash || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
+    echo "error: script must run in bash version 4.0 or later"
+    false
+    exit
+fi
+shopt -s extglob
 #
 # Last modified:
 #	2017-04-02
@@ -15,25 +17,19 @@
 #	2018-01-29
 #	2018-03-10 updated some of the comments in file
 #
-if [[ "${SHELL##*/}" != bash || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
-    echo "error: script must run in bash version 4.0 or later"
-    false
-    exit
-fi
-shopt -s extglob
-exitCode=0
-#
-#	Certbot TLSAgen DNS update using nsupdate for Bind9
-#	   there are three input paramaeters for this script
-#		1 the action add or delete
+#	Certbot TLSAgen DNS update function for ISC Bind (9) uses nsupdate
+#	   there are three input paramaeters for this script:
+#		1 the action to be performed - add or delete
 #		2 the file containing the records to be added to or deleted from the DNS zone
-#		3 NOT used in this  unit, the delay between running the TLSA generator and removing old tlsa records. 
-#		  Usually their TTL or a multiple thereof
+#		3 **NOT used in this  unit** the delay between running the TLSA generator 
+#		  and removing old tlsa records. Usually their TTL or a multiple thereof
+#
 
 # check to see if the input file contains any records, if yes proceed, if no the log a info message and exit.
-if [[ -s "$2" ]]; then
+exitCode=0
+if [[ -s "$2" ]]; then		# check to see if the input file contains any records
 #
-#	create the nsupdate input from the requested action and file 
+#	yes, proceed to run nsupdate using the action and input given file 
 #
 	while read -r tlsaRecord; do
 	    printf -- "server 127.0.0.1\n%s %s\nsend\nquit\n" "${1,,}" "$tlsaRecord" | nsupdate -v -k /var/run/named/session.key 2>&1
@@ -43,7 +39,7 @@ if [[ -s "$2" ]]; then
 	echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^} using records from \"$2\" ended *** exit code: $exitCode"
 else
 #
-#	there was nothing to do, log a message and set the exit code to zero
+#	no, there is nothing to do, log a message and set the exit code to zero
 #
 	echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^}, \"$2\" is zero length - nothing to do, not waiting exiting immediatly ***"
 	exitCode=0
