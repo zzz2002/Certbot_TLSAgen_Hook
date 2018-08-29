@@ -17,7 +17,7 @@ The first is the list of services for which we want TLSA records.  Common servic
 					used or included.
 	submission		587
 	imaps			993
-	sieve			4190 	I am not sure if this should be include.
+	sieve			4190 	I am not sure if this should be included.
 	caldav/carddav/https    443
 
 The second, which is described below, is a list of domains and subdomains that are included in a security certificate.
