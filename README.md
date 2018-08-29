@@ -28,7 +28,7 @@ For each service that we require a TLSA record for, we check to see if the servi
 After a certificate has been renewed, certbot calls any renew-hooks that have been set to run, once for each successfully renewed certificate. These commands are passed two shell variables,
 
  1. **RENEWED_LINEAGE** which points to the location of the new certs and
-    keys. Currently this is "/etc/letsencrypt/live/certificate-name"
+    keys. Currently this is "/etc/letsencrypt/live/*certificate-name*"
  2. **RENEWED_DOMAINS** which contains a space delimited list of the
     certificate’s domains and subdomains.
 
