@@ -21,7 +21,7 @@ shopt -s extglob								# start using bash features right after version check
 #	2017-04-07 20:30
 #	2018-02-09 16:00EST
 #	2018-08-13 14:40
-#	2018-08-29 minor spelling corrections
+#	2018-08-29 14:05 minor spelling corrections
 #=============
 #startTime=10#$(date +%s%N)
 
