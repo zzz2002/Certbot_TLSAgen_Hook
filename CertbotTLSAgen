@@ -22,15 +22,11 @@ shopt -s extglob								# start using bash features right after version check
 #	2018-02-09 16:00
 #	2018-08-13 14:40
 #	2018-08-29 14:05 minor spelling corrections
+#	2018-09-02 10:30 
 #=============
-#startTime=10#$(date +%s%N)
 
-positiveResponses='y|yes|t|true'
-negativeResponses='n|no|f|false'
-defaultUpdateAction='manual'
-
-declare -A messageText								# associative array containing information & error messages
-declare -a domainSOAdata
+#positiveResponses='y|yes|t|true'						# Not sure if setting these to default values is needed
+#negativeResponses='n|no|f|false'						#   when the normalization routine adds them anyway
 
 #
 # Variables derived either from the command line parameters or from the renew-hook environment variables.
@@ -38,14 +34,21 @@ declare -a domainSOAdata
 certbotLineage=""								# path to the certbot generated cert ...(RENEWED_LINEAGE or $1)
 declare -a certbotDomains							# An array into which RENEWED_DOMAINS or $2 Domains are split
 
+declare -r defaultUpdateAction='manual'						# the default CerbotTLSAgen DNS update process to use
+
 ########################################################################################################
 ################  the following variable can be overriddden/set using the config files #################
 ######################################################################################################
 installPath=$(dirname $(readlink -f "$0"))					# where are we installed/stored
 
+declare -A messageText								# associative array containing information & error messages
+declare -a domainSOAdata
+
 declare -a services=( smtp smtps submission imap sieve dav davical https )	# array of servics we want TLSA records for
 
-updateAction="manual"								# which DNS update process(?) to use
+declare -A pseudoSRVrecords							# associative array to be used when DNS SRV records are not available
+
+updateAction="$defaultUpdateAction"						# which DNS update routine to use
 
 CA_Record=y									# do we want dane-ca/ta records
 CA_Usage=dane-ca								# dane-ca/ta usage 
@@ -58,28 +61,27 @@ EE_Selector=pkey								# dane-ee selector
 EE_Type=sha-256									# dane-ee type
 
 TLSA_TTL=1800									# TLSA DNS record TTL in seconds 
-TLSA_RemoveDelay=3600								# the interval in seconds between adding new TLSA records and removing the old ones.
+TLSA_RemoveDelay=3600								# The interval in seconds between adding new TLSA records and removing the
+										#   old ones.
 TLSA_AutoRemove=no								# Do we want the automatically remove old records.
-#										# The removal process is done by spawning a background process that waits until the TLSA_RemoveDelay interval has pasted.
+										# The removal process is done by spawning a background process that waits
+						 				#  until the TLSA_RemoveDelay interval has passed.
 
 logOnly=no									# temp work around sysout + syslog
 logFile="/var/log/letsencrypt/tlsagen.log"					# logfile name & path
 
 outputFilepath=									#if not specified, defaults to the cerbot lineage
 ########################################################################################################
-
-declare -A pseudoSRVrecords							# associative array to be used when DNS SRV records are not available
-
 ########################################################################################################
 #
 #	Try and reduce all the variations on yes and no, due to both language and user input to y or n 
 #	Just in case a non-English user has used the english y/yes/... or n/no... append them to the test check.
 #
 normalizeResponse() {
-    local x="$1"								# save the input value in x, if we don't understand it then just pass it back unchanged
-    [[ ${1,,} = @(${positiveResponses}|y|yes|t|true) ]] && x='y'		# if the input variable is one of the positive responses, set x to y
-    [[ ${1,,} = @(${negativeResponses}|n|no|f|false) ]] && x='n'		# if the input variable is one of the negative responses, set x to n
-    echo "$x"									# pass back the normalized value or the original
+    local x="$1"						     # save the input value in x, if we don't understand it then just pass it back unchanged
+    [[ ${1,,} = @(${positiveResponses}|y|yes|t|true) ]] && x='y'     # if the input variable is one of the positive responses, set x to y
+    [[ ${1,,} = @(${negativeResponses}|n|no|f|false) ]] && x='n'     # if the input variable is one of the negative responses, set x to n
+    echo "$x"							     # pass back the normalized value or the original
 }
 
 #
@@ -103,7 +105,7 @@ normalizeSystemVariables() {
     EE_Selector="${EE_Selector,,}"
     EE_Type="${EE_Type,,}"
 
-    exec 3>> "$logFile"
+    exec 3>> "$logFile"						     # Where we want the log to be put
 }
 #
 #
@@ -114,11 +116,15 @@ outputMessage() {
     local extraData												# additional data 
     local badCode												# variable to save additional data 
     local xitCode												# just what it says it is
-    errorCode=${1^^}												# set the internal variable to the upper case $1
-    [[ -z "$errorCode" || -z "${messageText[$errorCode]}" ]] && { badCode="$errorCode"; errorCode='E999'; }	# did we get passed an error code and do we have a message for it
-														# no, set the oops code and save trhe actual code for diags 
-    msgVars=$(( 10#${messageText[$errorCode]:0:1} ))								# yes,get the number of variables needed for this message
-    extraData="${*:$(( msgVars + 2 ))}"										# save the extra data in a variable, stops the msg repeat
+    errorCode=${1^^}												# set the internal variable to the upper 															#   case $1
+    [[ -z "$errorCode" || -z "${messageText[$errorCode]}" ]] && { badCode="$errorCode"; errorCode='E999'; }	# did we get passed an error code and do we
+														#   have a message for it
+														# no, set the oops code and save trhe actual
+														#   code for diags 
+    msgVars=$(( 10#${messageText[$errorCode]:0:1} ))								# yes,get the number of variables needed for
+														#   this message
+    extraData="${*:$(( msgVars + 2 ))}"										# save the extra data in a variable, stops
+														#   the msg repeat
     extraData="${extraData%%\ *}"										# 
     [[ -n "$extraData" || -n "$badCode" ]] && extraData=' ** '"$badCode $extraData"				# add the seperator to front of this data
     printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" "${@:2:$msgVars}" "$extraData" >&3
@@ -139,35 +145,41 @@ outputMessage() {
 #		W  Warning, we don't understand the settiong supplied, but there is a resonable default to use.
 #		E  Error, something went wrong and we cannot continue
 #		F  Fatal Error, **NOT currently used**
+#
+#		#  comments
+#
 #	R Responses dependent on language
 #		+  positive responses y/yes/t/true...   o/oui/v/vrai ...
 #		-  negative responses n/no/f/false...   n/non/f/faux ...
-#	M email message text(s)
+#	M email related stuff (ot impemented yet)
 #
 #	the next three characters are dependent on the purpose, for messages it defines the message. 
 #	the next column defines for messages the number of fields in the message.
 #
 loadLanguageDependent() {
-    local aline
-    local i
-    local j
-    while read -r aline; do	
-	if [[ -n "$aline" ]]; then
-	    j="${aline:0:1}"
-	    aline="${aline%%\:\#\ \ *}"
-	    case "${j^^}" in
-		I|W|E)
-		    i="${aline:0:4}"
-		    messageText[${i^^}]=${aline:5}
+    local inputLine
+    local inputType
+    local messageNumber
+
+    while read -r inputLine; do						# read a line from the language depedent module
+	if [[ -n "$inputLine" ]]; then
+	    inputType="${inputLine:0:1}"				# Extract the input type
+	    inputLine="${inputLine%%\:\#\ \ *}"				# Remove any inline comments and save the data
+	    case "${inputType^^}" in
+		I|W|E)							# is it a message
+		    messageNumber="${inputLine:0:4}"			# extract the message number
+		    messageText[${messageNumber^^}]=${inputLine:5}	# using the message numer as the key save the text in array
 		;;
-		R)
-		    [[ "${aline:1:1}" = '+' ]] && { positiveResponses="${aline:7}"; positiveResponses="${positiveResponses// /}"; }
-		    [[ "${aline:1:1}" = '-' ]] && { negativeResponses="${aline:7}"; negativeResponses="${negativeResponses// /}"; }
+		R)							# is this a response record
+									# positive respnses are indicated by a '+' sign
+									#negative responses by a '-' sign
+		    [[ "${inputLine:1:1}" = '+' ]] && { positiveResponses="${inputLine:7}"; positiveResponses="${positiveResponses// /}"; }
+		    [[ "${inputLine:1:1}" = '-' ]] && { negativeResponses="${inputLine:7}"; negativeResponses="${negativeResponses// /}"; }
 		;;
-		M)
-		    #  future email message 
+		M)							# is this an eMail related record
+		    							#  *** future email stuff ***
 		;;
-		*)	 #  any thing else is ignored for the moment
+		*)	 						#  any thing else is ignored for the moment
 		;;
 	    esac
 	fi
@@ -188,7 +200,8 @@ setLineage() {
 	    outputMessage e002; return $?
 	fi
 }
-# Has $2 or the environment variable RENEWED_DOMAINS been set. If more than one domain is specified they are expected to be in the form of a space seperated list.
+# Has $2 or the environment variable RENEWED_DOMAINS been set. 
+# If more than one domain is specified they are expected to be in the form of a space seperated list.
 #
 setDomains() {
 	certbotDomains=( $RENEWED_DOMAINS )
@@ -284,13 +297,10 @@ generateDigest() {
 }
 #=====================================================================================================================================================================
 
-
-
 #=====================================================================================================================================================================
 #	My understanding is that we cannot use command line parameters when this is called as a certbots renew-hook.
-#	They will have to go somewhere else,
-#		I chose to use /etc/default/CertbotTLSAgen.cf for general use preferences
-#		And use a similar file placed in the ...../letsencrypt/live/$certname for certificate specifice data
+#	They will have to go somewhere else, I chose to use /etc/default/CertbotTLSAgen.cf for general use preferences
+#	  and use a similar file placed in the ...../letsencrypt/live/$certname for certificate specifice data
 
 #	Load global user preferences (/etc/default/CertbotTLSAgen.cf)
 [[ -f /etc/default/CertbotTLSAgen.cf ]] && . /etc/default/CertbotTLSAgen.cf
@@ -329,22 +339,22 @@ TLSA_delete_filename="$outputFilepath"'/TLSA_deletions'
 TLSA_add_filename="$outputFilepath"'/TLSA_additions'
 [[ -s "$TLSA_add_filename" ]] && rm "$TLSA_add_filename"
 
-declare -u aLine										# make sure aLine is uppercase
+declare -u aLine									# make sure aLine is uppercase
 
-for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do					# For each (sub)domain listed in the input, check to see if it is a service domain 
-												# that we might like to have a TLSA record for 
+for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do				# For each (sub)domain listed in the input, check to see if it is a 												#   service domain 
+											# that we might like to have a TLSA record for 
     duplicateCA=n
     duplicateEE=n
 
-    targetURL=${certbotDomains[domain]}								# I am not sure whether the Cerbot list of (sub)domains has a trailing "."
+    targetURL=${certbotDomains[domain]}							# I am not sure whether the Cerbot list of (sub)domains has a 												#  trailing "."
 
     domainSOAdata=($(dig @localhost +noall +authority SOA "$targetURL" ))		# get the SOA data associated with the service (sub)domain 
 
-    for service in $( seq 0 $((${#services[@]} -1 )) ); do					# Do this for each of the services that might us a TLSA record
-	while read -r srv_port srv_host; do							# read the out put of a DIG for a SRV record 
-	    if [[ -n "$srv_host" && "${srv_host%.}" == "$targetURL" ]]; then			# if the host returned by dig = the Cerbot target, then process it, else move on
+    for service in $( seq 0 $((${#services[@]} -1 )) ); do				# Do this for each of the services that might us a TLSA record
+	while read -r srv_port srv_host; do						# read the out put of a DIG for a SRV record 
+	    if [[ -n "$srv_host" && "${srv_host%.}" == "$targetURL" ]]; then		# if the host returned by dig = the Cerbot target, then process it, 												#   else move on
 		while read -r aLine; do
-		    case "${aLine:0:1}" in							# get any tlsa records associated with this 
+		    case "${aLine:0:1}" in						# get any tlsa records associated with this 
 		        2)
 			    if [[ "$aLine" = "$dane_caDigest" ]]; then
 			        duplicateCA=y
@@ -405,5 +415,4 @@ else
 	outputMessage i016
 fi
 
-#outputMessage i998 $(( ( 10#$(date +%s%N) - startTime ) / 1000000 ))
 exit 0
