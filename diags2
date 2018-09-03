@@ -1,0 +1,101 @@
+
+In CertbotTLSAgen line 42:
+installPath=$(dirname $(readlink -f "$0"))					# where are we installed/stored
+                      ^-- SC2046: Quote this to prevent word splitting.
+
+
+In CertbotTLSAgen line 130:
+    printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" "${@:2:$msgVars}" "$extraData" >&3
+                                                         ^-- SC1117: Backslash is literal in "\n". Prefer explicit escaping: "\\n".
+
+
+In CertbotTLSAgen line 131:
+    [[ "$logOnly" = n ]] && printf  "%s - %s ${messageText[$errorCode]:2}  \n" "${0##*/}" "$errorCode" ${@:2:$msgVars} 2>&1
+                                                                           ^-- SC1117: Backslash is literal in "\n". Prefer explicit escaping: "\\n".
+                                                                                                       ^-- SC2068: Double quote array expansions to avoid re-splitting elements.
+
+
+In CertbotTLSAgen line 207:
+	certbotDomains=( $RENEWED_DOMAINS )
+                         ^-- SC2206: Quote to prevent word splitting, or split robustly with mapfile or read -a.
+
+
+In CertbotTLSAgen line 208:
+	[[ ! -z $1 ]] && certbotDomains=( $1 )
+                                          ^-- SC2206: Quote to prevent word splitting, or split robustly with mapfile or read -a.
+
+
+In CertbotTLSAgen line 218:
+	abc=($(dig @localhost +short _"$1"._tcp."$2" SRV ))					# No, use dig to get SRV records 
+             ^-- SC2207: Prefer mapfile or read -a to split command output (or quote to avoid splitting).
+
+
+In CertbotTLSAgen line 222:
+	    echo ${abc[2]} ${abc[3]}								# yes, pass back port and subdomain to the caller
+                 ^-- SC2086: Double quote to prevent globbing and word splitting.
+                           ^-- SC2086: Double quote to prevent globbing and word splitting.
+
+
+In CertbotTLSAgen line 228:
+	    echo ${pseudoSRVrecords[$1.$2]}							# yes, use the pseudo record data to emulate dig
+                 ^-- SC2086: Double quote to prevent globbing and word splitting.
+
+
+In CertbotTLSAgen line 260:
+	od -vAn -tx1 | tr -d ' \012' | tr [:lower:] [:upper:]
+                                          ^-- SC2060: Quote parameters to tr to prevent glob expansion.
+                                                    ^-- SC2060: Quote parameters to tr to prevent glob expansion.
+
+
+In CertbotTLSAgen line 292:
+    echo "$Usage" "$Selector" "$Type" $( extract "$Selector" "$4" | digest "$Type" | format )
+                                      ^-- SC2046: Quote this to prevent word splitting.
+
+
+In CertbotTLSAgen line 306:
+[[ -f /etc/default/CertbotTLSAgen.cf ]] && . /etc/default/CertbotTLSAgen.cf
+                                           ^-- SC1091: Not following: /etc/default/CertbotTLSAgen.cf was not specified as input (see shellcheck -x).
+
+
+In CertbotTLSAgen line 308:
+[[ -f "$certbotLineage"/CertbotTLSAgen.cf ]] && . "$certbotLineage"/CertbotTLSAgen.cf
+                                                ^-- SC1090: Can't follow non-constant source. Use a directive to specify location.
+
+
+In CertbotTLSAgen line 313:
+if [ -f $installPath/CertbotTLSAgen."${LANG%%.*}".data ]; then
+        ^-- SC2086: Double quote to prevent globbing and word splitting.
+
+
+In CertbotTLSAgen line 351:
+    domainSOAdata=($(dig @localhost +noall +authority SOA "$targetURL" ))		# get the SOA data associated with the service (sub)domain 
+                   ^-- SC2207: Prefer mapfile or read -a to split command output (or quote to avoid splitting).
+
+
+In CertbotTLSAgen line 362:
+				printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $aLine >> "$TLSA_delete_filename"
+                                       ^-- SC2183: This format string has 7 variables, but is passed 4 arguments.
+                                                                          ^-- SC1117: Backslash is literal in "\n". Prefer explicit escaping: "\\n".
+                                                                                                                  ^-- SC2086: Double quote to prevent globbing and word splitting.
+
+
+In CertbotTLSAgen line 370:
+				printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $aLine >> "$TLSA_delete_filename"
+                                       ^-- SC2183: This format string has 7 variables, but is passed 4 arguments.
+                                                                          ^-- SC1117: Backslash is literal in "\n". Prefer explicit escaping: "\\n".
+                                                                                                                  ^-- SC2086: Double quote to prevent globbing and word splitting.
+
+
+In CertbotTLSAgen line 380:
+		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $dane_caDigest >> "$TLSA_add_filename"
+                           ^-- SC2183: This format string has 7 variables, but is passed 4 arguments.
+                                                              ^-- SC1117: Backslash is literal in "\n". Prefer explicit escaping: "\\n".
+                                                                                                      ^-- SC2086: Double quote to prevent globbing and word splitting.
+
+
+In CertbotTLSAgen line 385:
+		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $dane_eeDigest >> "$TLSA_add_filename"
+                           ^-- SC2183: This format string has 7 variables, but is passed 4 arguments.
+                                                              ^-- SC1117: Backslash is literal in "\n". Prefer explicit escaping: "\\n".
+                                                                                                      ^-- SC2086: Double quote to prevent globbing and word splitting.
+
