@@ -1,11 +1,11 @@
 ## CerbotTlsagen --- Certbot-renew-hook
-**Copyright (c) 2017, 2018 John L. Allen**  
+**Copyright (c) 2017, 2018 John L. Allen** 
 _This program is free software: you can redistribute it and/or modify it under the terms of the 
 GNU General Public License as published by the Free Software Foundation, either version 3 of 
 the License, or (at your option) any later version._
 
 _This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 See the GNU General Public License for more details._
 
 _You should have received a copy of the GNU General Public License
@@ -23,9 +23,9 @@ It can be run two way
 
 ## Operating as a Renew-Hook
 
-After a certificate has been renewed and new certificates generated, certbot calls any "renew-hooks" that have been specified to be run, once for each successfully renewed certificate. The "hook" is passed two arguments,
-1. Called **RENEWED_LINEAGE** is the location of the new certs and keys. Currently this is usually "/etc/letsencrypt/live/*certificate-name*"
-2. Called **RENEWED_DOMAINS** which contains a space delimited list of the certificate’s domains and subdomains.
+After a certificate has been renewed and new certificates generated, certbot calls any "renew-hooks" that have been specified to be run, once for each successfully renewed certificate. ~~The "hook" is passed two arguments,~~
+1. **$RENEWED_LINEAGE** is the location of the new certs and keys. Currently this is usually "/etc/letsencrypt/live/*certificate-name*"
+2. **$RENEWED_DOMAINS** which contains a space delimited list of the certificate’s domains and subdomains.
 ## Standalone operation
 This program can also be run standalone, in which case it makes use of two positional parameters:
 1. **$1** acts in the same way as RENEWED_LINEAGE above.
