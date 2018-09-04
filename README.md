@@ -104,7 +104,7 @@ If TLSA_Autoremove is set to yes then a command will be passed to AT utility to 
 ## outputFilepath=
 This location defaults to RENEWED_LINEAGE.
 The TLSA update records will be put in either the "TLSA_additions" or "TLSA_deletions" file, these files are currently saved 
-in the Letencrypt live directory. This can be overridden by specifying a path in outputFilepath. 
+in the Letencrypt live directory. This can be overridden by specifying a path in outputFilepath.\
 NB.If you have more than one certificate for which you create TLSA records you will need one path per certificate. 
 This can be done by setting this in the certificate version of the configuration file.
 
@@ -114,13 +114,13 @@ When running stand alone output messages to the terminal as well as the log, yes
 ## logFile=”/var/log/letsencrypt/tlsagen.log”
 The name and location of the CertbotTLSAgen log file.
 
-## pseudoSRVrecords=( [smtp.example.com]='25 smtp.example.com.'
-		     [submission.example.com]='587 smtp.example.com.' \
-		     [imap.example.com]='993 imap.example.com.' \
-		     [sieve.example.com]='4190 sieve.example.com.' \
-		     [dav.example.com]='443 dav.example.com.' \
-		     [davical.example.com]='443 davical.example.com.' \
-		     [https.example.com]='443 www.example.com.' ) \
+## pseudoSRVrecords=( ... )
+```
+pseudoSRVrecords=( [smtp.example.com]='25 smtp.example.com.' [submission.example.com]='587 smtp.example.com.' 
+		     [imap.example.com]='993 imap.example.com.' [sieve.example.com]='4190 sieve.example.com.' 
+		     [dav.example.com]='443 dav.example.com.' [davical.example.com]='443 davical.example.com.' 
+		     [https.example.com]='443 www.example.com.' ) 
+```		   
 Rather than using DIG to retrieve ports and targets, we can use a pseudo dig operation to retrieve this data.
-pseudoSRVrecords is an associative array, the index to the array is the service host each entry in the array consists of the port associated with the service and the target URL for the service.
+pseudoSRVrecords is an associative array, the index to the array is the service host each entry in the array consists of the port associated with the service and the target URL for the service.\
 *dig* would return priority, weight, port and target, as we do not use priority or weight they are not included in the table, the function that gets this information either from dig or this array returns zeros for these parameters.
