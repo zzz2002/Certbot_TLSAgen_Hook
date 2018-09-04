@@ -1,20 +1,18 @@
 #!/bin/bash
 # -*- mode: bash; -*-
-if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
-    echo "error: script must run in bash version 4.0 or later"
-    false
-    exit
-fi
-shopt -s extglob								# start using bash features right after version check
-# Copyright (c) 2017 John L. Allen
+# CerbotTlsagen --- 
+# Copyright (c) 2017, 2018 John L. Allen
 # This program is free software: you can redistribute it and/or modify it under the terms of the 
 # GNU General Public License as published by the Free Software Foundation, either version 3 of 
 # the License, or (at your option) any later version.
+#
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
 # without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-# *See the GNU General Public License for more details. You should have received a copy of the 
-# GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+# See the GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 #Last modified:
 #	2017-04-02
 #	2017-04-07
@@ -24,6 +22,12 @@ shopt -s extglob								# start using bash features right after version check
 #	2018-08-29 14:05 minor spelling corrections
 #	2018-09-02 10:30 
 #=============
+if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
+    echo "error: script must run in bash version 4.0 or later"
+    false
+    exit
+fi
+shopt -s extglob			# start using bash features right after version check
 
 #positiveResponses='y|yes|t|true'						# Not sure if setting these to default values is needed
 #negativeResponses='n|no|f|false'						#   when the normalization routine adds them anyway
