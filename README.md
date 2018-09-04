@@ -59,7 +59,7 @@ There are two instances of this file used, the “global” version which is sto
 The certificate specific version **OVERRIDES** the “global” version. The parameters and their purpose are listed below.
 
 ----------
-*installPath="/usr/local/bin"**
+**installPath="/usr/local/bin"**
 The “installPath” variable indicates where CertbotTLSAgen and its associated files are stored.
 In the latest version this is retrieved/set by using the *dirname $(readlink -f "$0")*
 If **THIS MUST BE SET** then I would strongly suggest setting it in global configuration file (*/etc/default/CertbotTLSAgen.cf*) and that the variable be made read only in order to ensure that this is not accidentally modified.
@@ -123,7 +123,7 @@ The name and location of the CertbotTLSAgen log file.
 		     [sieve.example.com]='4190 sieve.example.com.' 
 		     [dav.example.com]='443 dav.example.com.' 
 		     [davical.example.com]='443 davical.example.com.' 
-		     [https.example.com]='443 www.example.com.' )
+		     [https.example.com]='443 www.example.com.' )**
 Rather than using DIG to retrieve ports and targets, we can use a pseudo dig operation to retrieve this data.
 pseudoSRVrecords is an associative array, the index to the array is the service host each entry in the array consists of the port associated with the service and the target URL for the service.
 *dig* would return priority, weight, port and target, as we do not use priority or weight they are not included in the table, the function that gets this information either from dig or this array returns zeros for these parameters.
