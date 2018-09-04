@@ -6,9 +6,9 @@ This bash script was created to generate and automatically add and delete TLSA r
 
 It started out to be a “simple” wrapper to Viktor Dukhovni's tlsagen script.
 
-It can be run two way 
-	1) as a Letsencrypt (certbot) renew-hook. 
-	2) as a Standalone "utility".
+It can be run two way\
+	1) as a Letsencrypt (certbot) renew-hook.\
+	2) as a Standalone "utility".\
 
 ## Operating as a Renew-Hook
 
