@@ -343,7 +343,7 @@ TLSA_delete_filename="$outputFilepath"'/TLSA_deletions'
 TLSA_add_filename="$outputFilepath"'/TLSA_additions'
 [[ -s "$TLSA_add_filename" ]] && rm "$TLSA_add_filename"
 
-declare -u aLine									# make sure aLine is uppercase
+#declare -u aLine									# make sure aLine is uppercase
 
 for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do				# For each (sub)domain listed in the input, check to see if it is a 												#   service domain 
 											# that we might like to have a TLSA record for 
@@ -378,7 +378,7 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do				# For each (sub)d
 			*)
 			;;
 		    esac
-		done < <(dig @localhost +short +nosplit _"$srv_port"._tcp."$srv_host" TLSA )
+		done < <(dig @localhost +short +nosplit _"$srv_port"._tcp."$srv_host" TLSA | tr [lower:] [:upper:])
 
 		if [[ "$CA_Record" = y && "$duplicateCA" = n ]]; then
 		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $dane_caDigest >> "$TLSA_add_filename"
