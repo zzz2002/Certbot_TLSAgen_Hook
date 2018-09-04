@@ -33,12 +33,12 @@ There are two elements which are used to determine if a TLSA record should be ge
 The first is the list of services for which we want TLSA records.  Common services are:
 
 	Service                 Port 
-	smtp			25
-	smtps                   465	I believe that this service is deprecated. SHOULD NOT BE USED.
-	submission		587
-	imaps			993
-	sieve			4190 	I am not sure if this should be included.
-	caldav/carddav/https    443
+	smtp			25\
+	smtps                   465	I believe that this service is deprecated. SHOULD NOT BE USED.\
+	submission		587\
+	imaps			993\
+	sieve			4190 	I am not sure if this should be included.\
+	caldav/carddav/https    443\
 
 For each service that we require a TLSA record for, we check to see if the service host matches one the domains or subdomains in the certificate. If it does then a TLSA record using the port, service host and certificate is generated. We use TCP as the default protocol.
 As we cannot use command line parameters when called as a Certbot renew-hook all other parameters have to set using configuration files. I use the */etc/default/CertbotTLSAgen.cf* for general/global parameters, and similar file placed in the *…/letsencrypt/live* for certificate specific parameters.  The certificate specific parameters override the general/global parameters.
@@ -80,17 +80,17 @@ Ideally things like TLSA records etc, should not be cached, unfortunately we don
 
 
 **TLSA Generator Parameters** 
-The following parameters will produce 2 1 1 Certificate Authority certificate
-	CA_Required=y
-	CA_Usage=dane-ca 	#	TLSA usage	also seen as 3 in TLSA records
-	CA_Selector=pkey	#	TLSA selector	also seen as 1 in TLSA records
-	CA_Type=sha-256		#	TLSA type	also seen as 1 in TLSA records
+The following parameters will produce 2 1 1 Certificate Authority certificate\
+	CA_Required=y\
+	CA_Usage=dane-ca 	#	TLSA usage	also seen as 3 in TLSA records\
+	CA_Selector=pkey	#	TLSA selector	also seen as 1 in TLSA records\
+	CA_Type=sha-256		#	TLSA type	also seen as 1 in TLSA records\
 
-The following parameters will produce 3 1 1 TLSA certificate
-	EE_Required=y
-	EE_Usage=dane-ee	#	TLSA usage	also seen as 3 in TLSA records
-	EE_Selector=pkey	#	TLSA selector	also seen as 1 in TLSA records
-	EE_Type=sha-256		#	TLSA type	also seen as 1 in TLSA records
+The following parameters will produce 3 1 1 TLSA certificate\
+	EE_Required=y\
+	EE_Usage=dane-ee	#	TLSA usage	also seen as 3 in TLSA records\
+	EE_Selector=pkey	#	TLSA selector	also seen as 1 in TLSA records\
+	EE_Type=sha-256		#	TLSA type	also seen as 1 in TLSA records\
 
 **TLSA_AutoRemove=no**
 Do you want the system to remove old/replaced TLSA records automatically, yes or no. 
@@ -113,13 +113,13 @@ When running stand alone output messages to the terminal as well as the log, yes
 **logFile=”/var/log/letsencrypt/tlsagen.log”**
 The name and location of the CertbotTLSAgen log file.
 
-**pseudoSRVrecords=( [smtp.example.com]='25 smtp.example.com.'
-		     [submission.example.com]='587 smtp.example.com.'
-		     [imap.example.com]='993 imap.example.com.'
-		     [sieve.example.com]='4190 sieve.example.com.' 
-		     [dav.example.com]='443 dav.example.com.' 
-		     [davical.example.com]='443 davical.example.com.' 
-		     [https.example.com]='443 www.example.com.' )**
+**pseudoSRVrecords=( [smtp.example.com]='25 smtp.example.com.'\
+		     [submission.example.com]='587 smtp.example.com.'\
+		     [imap.example.com]='993 imap.example.com.'\
+		     [sieve.example.com]='4190 sieve.example.com.'\ 
+		     [dav.example.com]='443 dav.example.com.'\ 
+		     [davical.example.com]='443 davical.example.com.'\
+		     [https.example.com]='443 www.example.com.' )\**
 Rather than using DIG to retrieve ports and targets, we can use a pseudo dig operation to retrieve this data.
 pseudoSRVrecords is an associative array, the index to the array is the service host each entry in the array consists of the port associated with the service and the target URL for the service.
 *dig* would return priority, weight, port and target, as we do not use priority or weight they are not included in the table, the function that gets this information either from dig or this array returns zeros for these parameters.
