@@ -41,9 +41,6 @@ The first is the list of services for which we want TLSA records.  Common servic
 	caldav/carddav/https    443
 
 For each service that we require a TLSA record for, we check to see if the service host matches one the domains or subdomains in the certificate. If it does then a TLSA record using the port, service host and certificate is generated. We use TCP as the default protocol.
-
-----------
-
 As we cannot use command line parameters when called as a Certbot renew-hook all other parameters have to set using configuration files. I use the */etc/default/CertbotTLSAgen.cf* for general/global parameters, and similar file placed in the *…/letsencrypt/live* for certificate specific parameters.  The certificate specific parameters override the general/global parameters.
 
 ----------
