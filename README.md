@@ -31,7 +31,8 @@ This program can also be run standalone, in which case it makes use of two posit
 There are two elements which are used to determine if a TLSA record should be generated and installed.
 The first is the list of services for which we want TLSA records.  Common services are:
 
-	**Service                 Port**
+	Service                 Port
+	------
 	smtp			25
 	smtps                   465	I believe that this service is deprecated. SHOULD NOT BE USED.
 	submission		587
