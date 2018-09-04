@@ -31,8 +31,7 @@ The first is the list of services for which we want TLSA records.  Common servic
 |submission|587 ||
 |imaps|993 ||
 |sieve|4190|I am not sure if this should be included. |
-|<dl><dd>caldav</dd><dd>carddav</dd><dd>https</dd></dl>|443||
-
+|<dl><dd>caldav</dd><dd>carddav</dd><dd>https</dd></dl>|443|\
 For each service that we require a TLSA record for, we check to see if the service host matches one the domains or sub-domains in the certificate. If it does then a TLSA record using the port, service host and certificate is generated. We use TCP as the default protocol.
 ## Installation
 Copy the all files to a location of your choice. Ensure that CertbotTLSAgen and any CertbotTLSAgen.DNSupdate.\* files are executable.
@@ -40,10 +39,10 @@ Copy the file *CertbotTLSAgen.cf* to */etc/defaults.* and to *…/letsencrypt/li
 Follow the instruction about activating a renew-hook in the Letsencrypt documentation.
 
 ## Configuration
-There are two instances of this file used, the “global” version which is stored in */etc/default*, and the certificate specific instance which is kept in *…/live/cert-name*. 
-The certificate specific version **OVERRIDES** the “global” version. The parameters and their purpose are listed below
+As we cannot use command line parameters when called as a Certbot renew-hook all other parameters have to set using configuration files.\
+I use the */etc/default/CertbotTLSAgen.cf* for general/global parameters, and similar file placed in the *…/letsencrypt/live/cert-name/CetbotTLSAgen.cf* for certificate specific parameters.
 
-As we cannot use command line parameters when called as a Certbot renew-hook all other parameters have to set using configuration files. I use the */etc/default/CertbotTLSAgen.cf* for general/global parameters, and similar file placed in the *…/letsencrypt/live/cert-name/CetbotTLSAgen.cf* for certificate specific parameters.  The certificate specific parameters ***override*** the general/global parameters.
+The parameters in the certificate specific file ***override*** the general/global parameters.
 
 ### installPath="/usr/local/bin"
 The “installPath” variable indicates where CertbotTLSAgen and its associated files are stored.
