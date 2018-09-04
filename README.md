@@ -116,8 +116,8 @@ The name and location of the CertbotTLSAgen log file.
 **pseudoSRVrecords=( [smtp.example.com]='25 smtp.example.com.' \
 		     [submission.example.com]='587 smtp.example.com.' \
 		     [imap.example.com]='993 imap.example.com.' \
-		     [sieve.example.com]='4190 sieve.example.com.' \ 
-		     [dav.example.com]='443 dav.example.com.' \ 
+		     [sieve.example.com]='4190 sieve.example.com.' \
+		     [dav.example.com]='443 dav.example.com.' \
 		     [davical.example.com]='443 davical.example.com.' \
 		     [https.example.com]='443 www.example.com.' )** \
 Rather than using DIG to retrieve ports and targets, we can use a pseudo dig operation to retrieve this data.
