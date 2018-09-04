@@ -1,6 +1,6 @@
-##**Certbot-renew-hook**
+#Certbot-renew-hook
 
-##Certbot TLSA Generator
+###Certbot TLSA Generator
 ======================
 
 This bash script was created to generate and automatically add and delete TLSA records.
