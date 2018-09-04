@@ -32,7 +32,7 @@ There are two elements which are used to determine if a TLSA record should be ge
 The first is the list of services for which we want TLSA records.  Common services are:
 
 | Service | Port | |
-| --- | ---| --- |
+| :---: | :---: | --- |
 | smtp | 25 |
 | smtps | 465 |	I believe that this service is deprecated. SHOULD NOT BE USED|
 | submission | 587 | |
