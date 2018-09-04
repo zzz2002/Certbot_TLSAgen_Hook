@@ -1,6 +1,6 @@
-##**Certbot-renew-hook**##
+##**Certbot-renew-hook**
 
-Certbot TLSA Generator
+##Certbot TLSA Generator
 ======================
 
 This bash script was created to generate and automatically add and delete TLSA records.
@@ -11,7 +11,7 @@ It can be run two way
 	1) as a Letsencrypt (certbot) renew-hook. 
 	2) as a Standalone "utility".
 
-**Operating as a Renew-Hook**
+##Operating as a Renew-Hook
 
 After a certificate has been renewed and new certificates generated, certbot calls any "renew-hooks" that have been specified to be run, once for each successfully renewed certificate. The "hook" is passed two arguments,
 
