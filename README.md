@@ -1,6 +1,6 @@
-# Certbot-renew-hook
+###Certbot-renew-hook
 
-## Certbot TLSA Generator
+# Certbot TLSA Generator
 
 This bash script was created to generate and automatically add and delete TLSA records.
 
@@ -14,16 +14,15 @@ It can be run two way\
 
 After a certificate has been renewed and new certificates generated, certbot calls any "renew-hooks" that have been specified to be run, once for each successfully renewed certificate. The "hook" is passed two arguments,
 
- 1. Called **RENEWED_LINEAGE** is the location of the new certs and keys. 
-        Currently this is usually "/etc/letsencrypt/live/*certificate-name*"
- 2. Called **RENEWED_DOMAINS** which contains a space delimited list of the certificate’s domains and subdomains.
+1. Called **RENEWED_LINEAGE** is the location of the new certs and keys. Currently this is usually "/etc/letsencrypt/live/*certificate-name*"
+2. Called **RENEWED_DOMAINS** which contains a space delimited list of the certificate’s domains and subdomains.
 
 ## Standalone operation
 
 This program can also be run standalone, in which case it makes use of two positional parameters:
 
- 1. **$1** acts in the same way as RENEWED_LINEAGE above.
- 2. **$2** acts in the same way as RENEWED_DOMAINS above.
+1. **$1** acts in the same way as RENEWED_LINEAGE above.
+2. **$2** acts in the same way as RENEWED_DOMAINS above.
 
 ----------
 ## How it works
@@ -32,14 +31,13 @@ There are two elements which are used to determine if a TLSA record should be ge
 The first is the list of services for which we want TLSA records.  Common services are:
 
 | Service | Port | |
-| :---: | :---: | --- |
+| :---: | ---: | :--- |
 | smtp | 25 |
 | smtps | 465 |	I believe that this service is deprecated. SHOULD NOT BE USED|
 | submission | 587 | |
 | imaps	| 993 | |
 | sieve | 4190 | I am not sure if this should be included. |
-| caldav/carddav/https | 443 |
-
+| <dl><dd>caldav</dd><dd>carddav</dd><dd>https</dd></dl> | 443 |
 For each service that we require a TLSA record for, we check to see if the service host matches one the domains or subdomains in the certificate. If it does then a TLSA record using the port, service host and certificate is generated. We use TCP as the default protocol.
 As we cannot use command line parameters when called as a Certbot renew-hook all other parameters have to set using configuration files. I use the */etc/default/CertbotTLSAgen.cf* for general/global parameters, and similar file placed in the *…/letsencrypt/live* for certificate specific parameters.  The certificate specific parameters override the general/global parameters.
 
@@ -103,7 +101,7 @@ If TLSA_Autoremove is set to yes then a command will be passed to AT utility to 
 
 ## outputFilepath=
 This location defaults to RENEWED_LINEAGE.
-The TLSA update records will be put in either the "TLSA_additions" or "TLSA_deletions" file, these files are currently saved 
+The TLSA update records will be put in either the "TLSA\_additions" or "TLSA\_deletions" file, these files are currently saved 
 in the Letencrypt live directory. This can be overridden by specifying a path in outputFilepath.\
 NB.If you have more than one certificate for which you create TLSA records you will need one path per certificate. 
 This can be done by setting this in the certificate version of the configuration file.
@@ -121,7 +119,7 @@ pseudoSRVrecords=( [smtp.example.com]='25 smtp.example.com.'
 		   [imap.example.com]='993 imap.example.com.' [sieve.example.com]='4190 sieve.example.com.' 
 		   [dav.example.com]='443 dav.example.com.' [davical.example.com]='443 davical.example.com.' 
 		   [https.example.com]='443 www.example.com.' ) 
-```		   
+```
 Rather than using DIG to retrieve ports and targets, we can use a pseudo dig operation to retrieve this data.
 pseudoSRVrecords is an associative array, the index to the array is the service host each entry in the array consists of the port associated with the service and the target URL for the service.\
 *dig* would return priority, weight, port and target, as we do not use priority or weight they are not included in the table, the function that retrieves this information either from dig or this array returns zeros for these parameters.
