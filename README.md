@@ -55,19 +55,19 @@ The certificate specific version **OVERRIDES** the “global” version. The par
 ### installPath="/usr/local/bin"
 The “installPath” variable indicates where CertbotTLSAgen and its associated files are stored.
 In the latest version this is retrieved/set by using the *dirname $(readlink -f "$0")*
-If **THIS MUST BE SET** then I would strongly suggest setting it in global configuration file (*/etc/default/CertbotTLSAgen.cf*) and that the variable be made read only in order to ensure that this is not accidentally modified.
+If **THIS MUST BE SET** then I would strongly suggest setting it in global configuration file (*/etc/default/CertbotTLSAgen.cf*) and that the variable be made read only in order to ensure that this is not accidentally modified.\
 e.g. declare -r installPath="/usr/local/bin" use declare -r to make it read only
 
 
 ### services=( smtp smtps submission imap sieve dav davical https )
-The “services” variable is an array of service names, to specify which services you want to TLSA records for. 
+The “services” variable is an array of service names, to specify which services you want to TLSA records for.\
 e.g. *services=( dav https )* would limit the system to only generating certificates for those services.
 
 ### updateAction=”manual”
 After the TLSA records have been created they need to be added to your DNS system. The methods currently available are:
- - **manual** The system takes no action to add the TLSA records to your DNS, you must do the update manually.
- - **nsupdate** The system will attempt to install the TLSA records in your DNS, using the ISC bind utility **"nsupdate"**. 
-     In order for this to work zones for which you want to use this facility must be capable of dynamic update.
+ - **manual** The system takes no action to add the TLSA records to your DNS, you must do the update manually.\
+ - **nsupdate** The system will attempt to install the TLSA records in your DNS, using the ISC bind utility **"nsupdate"**.\
+ In order for this to work zones for which you want to use this facility must be capable of dynamic update.
 
 ### TLSA_TTL=1800
 The TTL for TLSA records should probably be kept low, probably not more the 1 hour. I use 30 minutes (1800 seconds) as the TTL for TLSA records.
@@ -94,7 +94,8 @@ Do you want the system to remove old/replaced TLSA records automatically, yes or
 ### TLSA_RemoveDelay=5400
 The approximate length of time in seconds between the installation of new/renewed certificates and the removal of old certificates. 
 
-If TLSA_Autoremove is set to yes then a command will be passed to AT utility to start a TLSA delete operation after TLSA\_RemoveDelay seconds. Note as AT's smallest unit of time is minutes the time delay will be converted to minutes rounded down.
+If TLSA_Autoremove is set to yes then a command will be passed to AT utility to start a TLSA delete operation after TLSA\_RemoveDelay seconds.\
+**Note** as AT's smallest unit of time is minutes the time delay will be converted to minutes rounded down.
 
 ### outputFilepath=
 This location defaults to RENEWED_LINEAGE.
@@ -109,7 +110,7 @@ When running stand alone output messages to the terminal as well as the log, yes
 ### logFile=”/var/log/letsencrypt/tlsagen.log”
 The name and location of the CertbotTLSAgen log file.
 
-### pseudoSRVrecords=( [smtp.example.com]='25 smtp.example.com.' \
+### pseudoSRVrecords=( [smtp.example.com]='25 smtp.example.com.'
 		     [submission.example.com]='587 smtp.example.com.' \
 		     [imap.example.com]='993 imap.example.com.' \
 		     [sieve.example.com]='4190 sieve.example.com.' \
