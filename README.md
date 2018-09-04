@@ -64,7 +64,7 @@ The “installPath” variable indicates where CertbotTLSAgen and its associated
 In the latest version this is retrieved/set by using the *dirname $(readlink -f "$0")*
 If **THIS MUST BE SET** then I would strongly suggest setting it in global configuration file (*/etc/default/CertbotTLSAgen.cf*) and that the variable be made read only in order to ensure that this is not accidentally modified.
 
-e.g. declare -r installPath="/usr/local/bin"	# where we are installed/stored, use declare -r to make it read only
+e.g. declare -r installPath="/usr/local/bin" use declare -r to make it read only
 
 
 **services=( smtp smtps submission imap sieve dav davical https )**
@@ -84,16 +84,16 @@ Ideally things like TLSA records etc, should not be cached, unfortunately we don
 
 **TLSA Generator Parameters** 
 The following parameters will produce 2 1 1 Certificate Authority certificate
-CA_Required=y
-CA_Usage=dane-ca 	#	TLSA usage	also seen as 3 in TLSA records
-CA_Selector=pkey	#	TLSA selector	also seen as 1 in TLSA records
-CA_Type=sha-256		#	TLSA type	also seen as 1 in TLSA records
+ CA_Required=y
+ CA_Usage=dane-ca 	#	TLSA usage	also seen as 3 in TLSA records
+ CA_Selector=pkey	#	TLSA selector	also seen as 1 in TLSA records
+ CA_Type=sha-256		#	TLSA type	also seen as 1 in TLSA records
 
 The following parameters will produce 3 1 1 TLSA certificate
-EE_Required=y
-EE_Usage=dane-ee	#	TLSA usage	also seen as 3 in TLSA records
-EE_Selector=pkey	#	TLSA selector	also seen as 1 in TLSA records
-EE_Type=sha-256		#	TLSA type	also seen as 1 in TLSA records
+ EE_Required=y
+ EE_Usage=dane-ee	#	TLSA usage	also seen as 3 in TLSA records
+ EE_Selector=pkey	#	TLSA selector	also seen as 1 in TLSA records
+ EE_Type=sha-256		#	TLSA type	also seen as 1 in TLSA records
 
 **TLSA_AutoRemove=no**
 Do you want the system to remove old/replaced TLSA records automatically, yes or no. 
