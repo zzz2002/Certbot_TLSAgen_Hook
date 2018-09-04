@@ -31,14 +31,14 @@ This program can also be run standalone, in which case it makes use of two posit
 There are two elements which are used to determine if a TLSA record should be generated and installed.
 The first is the list of services for which we want TLSA records.  Common services are:
 
-	Service                 Port
-	------
-	smtp			25
-	smtps                   465	I believe that this service is deprecated. SHOULD NOT BE USED.
-	submission		587
-	imaps			993
-	sieve			4190 	I am not sure if this should be included.
-	caldav/carddav/https    443
+| Service | Port | |
+| --- | ---| --- |
+| smtp | 25 |
+| smtps | 465 |	I believe that this service is deprecated. SHOULD NOT BE USED|
+| submission | 587 | |
+| imaps	| 993 | |
+| sieve | 4190 | I am not sure if this should be included. |
+| caldav/carddav/https | 443 |
 
 For each service that we require a TLSA record for, we check to see if the service host matches one the domains or subdomains in the certificate. If it does then a TLSA record using the port, service host and certificate is generated. We use TCP as the default protocol.
 As we cannot use command line parameters when called as a Certbot renew-hook all other parameters have to set using configuration files. I use the */etc/default/CertbotTLSAgen.cf* for general/global parameters, and similar file placed in the *…/letsencrypt/live* for certificate specific parameters.  The certificate specific parameters override the general/global parameters.
