@@ -78,10 +78,10 @@ Ideally things like TLSA records etc, should not be cached, unfortunately we don
 
 ## TLSA Generator Parameters*
 The following parameters will produce 2 1 1 Certificate Authority certificate\
-	CA_Required=y\
+	'''CA_Required=y\
 	CA_Usage=dane-ca	TLSA usage	also seen as 3 in TLSA records\
 	CA_Selector=pkey	TLSA selector	also seen as 1 in TLSA records\
-	CA_Type=sha-256		TLSA type	also seen as 1 in TLSA records\
+	CA_Type=sha-256		TLSA type	also seen as 1 in TLSA records\'''
 
 The following parameters will produce 3 1 1 TLSA certificate\
 	EE_Required=y\
