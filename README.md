@@ -1,4 +1,4 @@
-## CerbotTlsagen --- Certbot-renew-hook
+CerbotTlsagen is a Certbot renew-hook designed generate and automatically add and delete TLSA records.
 **Copyright (c) 2017, 2018 John L. Allen**\
 _This program is free software: you can redistribute it and/or modify it under the terms of the 
 GNU General Public License as published by the Free Software Foundation, either version 3 of 
@@ -13,9 +13,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>._
 
 # Certbot TLSA Generator
 
-This bash script was created to generate and automatically add and delete TLSA records.
-
-It started out to be a “simple” wrapper to Viktor Dukhovni's tlsagen script.
+I wrote this bash script to automate the process of generating and updating the TLSA records in my DNS (Bind9). It started out to be a “simple” wrapper to Viktor Dukhovni's tlsagen script.
 
 It can be run two way
 1) as a Letsencrypt (certbot) renew-hook.
