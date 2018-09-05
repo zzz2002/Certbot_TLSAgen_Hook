@@ -1,4 +1,4 @@
-CerbotTlsagen is a Certbot renew-hook designed generate and automatically add and delete TLSA records.
+CerbotTlsagen is a Certbot renew-hook designed generate and automatically add and delete TLSA records.\
 **Copyright (c) 2017, 2018 John L. Allen**\
 _This program is free software: you can redistribute it and/or modify it under the terms of the 
 GNU General Public License as published by the Free Software Foundation, either version 3 of 
