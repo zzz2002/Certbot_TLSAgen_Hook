@@ -100,8 +100,8 @@ If TLSA_Autoremove is set to yes then a command will be passed to AT utility to 
 **Note** as AT's smallest unit of time is minutes the time delay will be converted to minutes rounded down.
 
 ### outputFilepath=
-This location defaults to RENEWED_LINEAGE.
-The TLSA update records will be put in either the "TLSA\_additions" or "TLSA\_deletions" file, these files are currently saved 
+This location defaults to RENEWED_LINEAGE.\
+The TLSA update records will be put in either the "TLSA\_additions" or "TLSA\_deletions" file, these files are currently located
 in the Letencrypt live directory. This can be overridden by specifying a path in outputFilepath.\
 NB.If you have more than one certificate for which you create TLSA records you will need one path per certificate. 
 This can be done by setting this in the certificate version of the configuration file.
