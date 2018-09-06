@@ -358,6 +358,7 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do				# For each (sub)d
 	while read -r srv_port srv_host; do						# read the out put of a DIG for a SRV record 
 	    if [[ -n "$srv_host" && "${srv_host%.}" == "$targetURL" ]]; then		# if the host returned by dig = the Cerbot target, then process it, 												#   else move on
 		while read -r aLine; do
+		    aLine="${aLine^^}"
 		    case "${aLine:0:1}" in						# get any tlsa records associated with this 
 		        2)
 			    if [[ "$aLine" = "$dane_caDigest" ]]; then
@@ -378,7 +379,7 @@ for domain in $( seq 0 $((${#certbotDomains[@]} -1 )) ); do				# For each (sub)d
 			*)
 			;;
 		    esac
-		done < <(dig @localhost +short +nosplit _"$srv_port"._tcp."$srv_host" TLSA | tr [lower:] [:upper:])
+		done < <(dig @localhost +short +nosplit _"$srv_port"._tcp."$srv_host" TLSA )
 
 		if [[ "$CA_Record" = y && "$duplicateCA" = n ]]; then
 		    printf "_%d._tcp.%s %d IN TLSA %d %d %d %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" $dane_caDigest >> "$TLSA_add_filename"
