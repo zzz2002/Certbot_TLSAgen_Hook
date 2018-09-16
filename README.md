@@ -40,7 +40,7 @@ The first is the list of services for which we want TLSA records.  Common servic
 |submission|587 ||
 |imaps|993 ||
 |sieve|4190|I am not sure if this should be included. |
-|<dl><dd>caldav</dd><dd>carddav</dd><dd>https</dd></dl>|443|
+|<dl><dd>caldav</dd><dd>carddav</dd><dd>https</dd></dl>|443||
 
 For each service that we require a TLSA record for, we check to see if the service host matches one the domains or sub-domains in the certificate. If it does then a TLSA record using the port, service host and certificate is generated. We use TCP as the default protocol.
 ## Installation
