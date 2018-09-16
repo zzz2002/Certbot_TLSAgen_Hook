@@ -287,7 +287,7 @@ generateDigest() {
 #
 # generate the digest 
 #
-    echo "$Usage" "$Selector" "$Type" "$( extract "$Selector" "$4" | digest "$Type" | format )"
+    echo "$Usage" "$Selector" "$Type" $( extract "$Selector" "$4" | digest "$Type" | format )
 #
 # Check the previous steps worked
 #
