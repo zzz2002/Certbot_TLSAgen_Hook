@@ -33,7 +33,7 @@ fi
 shopt -s extglob			# start using bash features right after version check
 
 #
-# immutable variables
+# immutable variables/named constants
 #
 declare -r defaultUpdateAction='manual'						# the default CerbotTLSAgen DNS update process to use
 declare -r preferedNameserver='localhost'					# 
@@ -346,18 +346,16 @@ TLSA_delete_filename="$outputFilepath"'/TLSA_deletions'
 TLSA_add_filename="$outputFilepath"'/TLSA_additions'
 [[ -s "$TLSA_add_filename" ]] && rm "$TLSA_add_filename"
 
-for domain in "${certbotDomains[@]}"; do				# For each (sub)domain listed in the input, check to see if it is a service domain 
+for domain in "${certbotDomains[@]}"; do						# For each (sub)domain listed in the input, check to see if it is a service domain 
 											# that we might like to have a TLSA record for 
     duplicateCA=n
     duplicateEE=n
 
-    targetURL=${certbotDomains[domain]}							# I am not sure whether the Certbot list of (sub)domains has a trailing "."
+    read -r -a domainSOAdata <<< "$(dig @"$preferedNameserver" +noall +authority SOA "$domain")"	# get the SOA data associated with the service (sub)domain 
 
-    read -r -a domainSOAdata <<< "$(dig @"$preferedNameserver" +noall +authority SOA "$targetURL")"	# get the SOA data associated with the service (sub)domain 
-
-    for service in "${services[@]}"; do				# Do this for each of the services that might us a TLSA record
+    for service in "${services[@]}"; do							# Do this for each of the services that might us a TLSA record
 	while read -r srv_port srv_host; do						# read the out put of a DIG for a SRV record 
-	    if [[ -n "$srv_host" && "${srv_host%.}" == "$targetURL" ]]; then		# if the host returned by dig = the Certbot target, then process it, else move on
+	    if [[ -n "$srv_host" && "${srv_host%.}" == "$domain" ]]; then		# if the host returned by dig = the Certbot target, then process it, else move on
 		while read -r aLine; do
 		    aLine="${aLine^^}"							# make sure aLine is uppercase
 		    case "${aLine:0:1}" in						# get any TLSA records associated with this 
@@ -366,7 +364,7 @@ for domain in "${certbotDomains[@]}"; do				# For each (sub)domain listed in the
 			        duplicateCA=y
 			    else
 				printf "_%d._tcp.%s %d IN TLSA %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$aLine" >> "$TLSA_delete_filename"
-				outputMessage i010 "${services[$service]}" "$srv_port" "$srv_host"
+				outputMessage i010 "$service" "$srv_port" "$srv_host"
 			    fi
 			;;
 			3)
@@ -374,7 +372,7 @@ for domain in "${certbotDomains[@]}"; do				# For each (sub)domain listed in the
 				duplicateEE=y
 			    else
 				printf "_%d._tcp.%s %d IN TLSA %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$aLine" >> "$TLSA_delete_filename"
-				outputMessage i011 "${services[$service]}" "$srv_port" "$srv_host"
+				outputMessage i011 "$service" "$srv_port" "$srv_host"
 			    fi
 			;;
 			*)
@@ -384,15 +382,15 @@ for domain in "${certbotDomains[@]}"; do				# For each (sub)domain listed in the
 
 		if [[ "$CA_Record" = y && "$duplicateCA" = n ]]; then
 		    printf "_%d._tcp.%s %d IN TLSA %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$dane_caDigest" >> "$TLSA_add_filename"
-		    outputMessage i012 "${services[$service]}" "$srv_port" "$srv_host"
+		    outputMessage i012 "$service" "$srv_port" "$srv_host"
 		fi
 
 		if [[ "$EE_Record" = y && "$duplicateEE" = n ]]; then
 		    printf "_%d._tcp.%s %d IN TLSA %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$dane_eeDigest" >> "$TLSA_add_filename"
-		    outputMessage i013 "${services[$service]}" "$srv_port" "$srv_host"
+		    outputMessage i013 "$service" "$srv_port" "$srv_host"
 		fi
 	    fi
-	done < <(getServiceData "${services[$service]}" "${domainSOAdata[0]}" )
+	done < <(getServiceData "$service" "${domainSOAdata[0]}" )
     done
 done
 #
