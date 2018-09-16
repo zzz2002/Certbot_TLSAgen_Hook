@@ -188,8 +188,6 @@ loadLanguageDependent() {
 		;;
 		M)							# *** future email stuff ? *** is this an email related record
 		;;
-		#)							# ignore comments
-		;;
 		*)	 						#  any thing else is ignored for the moment
 		;;
 	    esac
