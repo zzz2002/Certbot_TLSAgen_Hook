@@ -115,8 +115,6 @@ normalizeSystemVariables() {
     EE_Usage="${EE_Usage,,}"
     EE_Selector="${EE_Selector,,}"
     EE_Type="${EE_Type,,}"
-
-    exec 3>> "$logFile"												# Where we want the log to be located
 }
 #
 #
@@ -138,8 +136,8 @@ outputMessage() {
 														#   the message repeat
     extraData="${extraData%%\ *}"										# 
     [[ -n "$extraData" || -n "$badCode" ]] && extraData=' ** '"$badCode $extraData"				# add the separator to front of this data
-    printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" "${@:2:$msgVars}" "$extraData" >&3
-    [[ "$logOnly" = n ]] && printf  "%s - %s ${messageText[$errorCode]:2}  \n" "${0##*/}" "$errorCode" "${@:2:$msgVars}" 2>&1
+    printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" "${@:2:$msgVars}" "$extraData" >>"$logFile"
+    [[ "$logOnly" = n ]] && printf  "%s - %s ${messageText[$errorCode]:2}  \n" "${0##*/}" "$errorCode" "${@:2:$msgVars}" 
 
     case ${errorCode:0:1} in
 	I|W) xitCode=0;;											# for info and warning messages return 0
@@ -307,6 +305,11 @@ generateDigest() {
 # shellcheck source=./CertbotTLSAgen.cf
 [[ -f "$certbotLineage"/CertbotTLSAgen.cf ]] && . "$certbotLineage"/CertbotTLSAgen.cf
 
+#
+#	We should now know the name and location of the logfile, redirect stderr to it
+#
+    exec 2>>"$logFile" 
+
 #	Check to see if we have a file for $LANG (I use only the language code, I strip off the utf_8)
 #	If so load the language specific file else load the Canadian English as the default and
 #	output message about missing language dependent data module. Has to wait till now as we were still loading data.
@@ -405,14 +408,14 @@ if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
 	#   anything to add
 	if [[ -s "$TLSA_add_filename" ]]; then
 #		outputMessage i014
-		"$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$TLSA_add_filename" 0 >&3 2>&3
+		"$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$TLSA_add_filename" 0 "$logFile"
     	fi
 
 #   anything to delete
     	if [[ "$TLSA_AutoRemove" = y && -s "$TLSA_delete_filename" ]]; then
- 		outputMessage i015 "$TLSA_RemoveDelay"
- 		echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" | at now + $((TLSA_RemoveDelay/60)) minutes
-    	fi
+		outputMessage i015 "$TLSA_RemoveDelay"
+		echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" 0 "$logFile" | at now + $((TLSA_RemoveDelay/60)) minutes
+	fi
 else
 	outputMessage i016
 fi

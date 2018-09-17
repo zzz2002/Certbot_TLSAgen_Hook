@@ -1,7 +1,6 @@
 #!/bin/bash
 # -*- mode: sh; -*-
-
-# CerbotTlsagen.DNSupdate.nsupdate ... <one line to give the program's name and a brief idea of what it does.>
+# CerbotTlsagen.DNSupdate.nsupdate ... is part of the CertbotTlasgen package designed to run nsupdate
 # Copyright (c) 2017, 2018 John L. Allen
 # This program is free software: you can redistribute it and/or modify it under the terms of the 
 # GNU General Public License as published by the Free Software Foundation, either version 3 of 
@@ -22,40 +21,29 @@ fi
 shopt -s extglob
 #
 # Last modified:
-#	2017-04-02
-#	2017-04-07
-#	2017-04-22
-#	2017-04-29
-#	2017-10-15 added comments and removed some redundant code
-#	2018-01-29
-#	2018-03-10 updated some of the comments in file
 #
 #	Certbot TLSAgen DNS update function for ISC Bind (9) uses nsupdate
-#	   there are three input paramaeters for this script:
+#	   there are four input paramaeters for this script:
 #		1 the action to be performed - add or delete
 #		2 the file containing the records to be added to or deleted from the DNS zone
 #		3 **NOT used in this  unit** the delay between running the TLSA generator 
 #		  and removing old tlsa records. Usually their TTL or a multiple thereof
+#		4 logfile to be used
 #
+exitCode=0							# set the exit code to OK, if there is a problem it will be reset
 
-# check to see if the input file contains any records, if yes proceed, if no the log a info message and exit.
-exitCode=0
-if [[ -s "$2" ]]; then		# check to see if the input file contains any records
-#
-#	yes, proceed to run nsupdate using the action and input given file 
-#
+exec >>"$4" 2>&1						# redirect stdout & stderr to the logfile
+
+if [[ -s "$2" ]]; then 						# check to see if the input file contains any records, if yes proceed else exit.
 	while read -r tlsaRecord; do
-	    printf -- "server 127.0.0.1\n%s %s\nsend\nquit\n" "${1,,}" "$tlsaRecord" | nsupdate -v -k /var/run/named/session.key 2>&1
+	    printf -- "server 127.0.0.1\n%s  %s\nsend\nquit\n" "${1,,}" "$tlsaRecord" | nsupdate -v -k /var/run/named/session.key 
+	    if [[ $? -ne 0 ]]; then
+		printf -- "%s %s - *** ERROR *** \"%s\" from \"%s\" failed %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$1" "$2" >>"$4"
+		exitCode=$((exitCode+9))
+	    fi
 	    exitCode=$((PIPESTATUS+exitCode)) 
 	done < "$2"
-#
-	echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^} using records from \"$2\" ended *** exit code: $exitCode"
-else
-#
-#	no, there is nothing to do, log a message and set the exit code to zero
-#
-	echo "$(date "+%Y-%m-%d %H:%M:%S.%6N") ${0##*/} *** ${1^^}, \"$2\" is zero length - nothing to do, not waiting exiting immediatly ***"
-	exitCode=0
+	printf -- "%s %s - *** %s  - using records from \"%s\" ended *** exit code: %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$1" "$2" "$exitCode" >>"$4"
 fi
 
 exit "$exitCode"
