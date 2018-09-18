@@ -14,16 +14,12 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #Last modified:
-#	2017-04-02
-#	2017-04-07
-#	2017-04-07 20:30
-#	2018-02-09 16:00
-#	2018-08-13 14:40
 #	2018-08-29 14:05 minor spelling corrections
 #	2018-09-02 10:30 
 #	2018-09-16 10:18 
 #	2018-09-16 10:29 made the nameserver for dig command a variable 
 #	2018-09-16 11:20 made changes recommended by pgas
+#	2018-09-17 23:47 sysncronizing versions
 #=============
 if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
     echo "error: script must run in bash version 4.0 or later"
@@ -219,7 +215,7 @@ setDomains() {
 getServiceData() {
     local -a abc
     if [ ${#pseudoSRVrecords[@]} -le 0 ]; then 							# are we using pseudo records
-	read -r -a abc <<<"$(dig @"$preferedNameserver" +short _"$1"._tcp."$2"  SRV )"			# No, use DIG to get SRV records (preferred)
+	read -r -a abc <<<"$(dig @"$preferedNameserver" +short _"$1"._tcp."$2"  SRV )"		# No, use DIG to get SRV records (preferred)
     else
 	read -r -a abc <<< "0 0 ${pseudoSRVrecords[$1.$2]}"					# Yes, Get data from pseudo SRV array
     fi
@@ -285,7 +281,7 @@ generateDigest() {
 #
 # generate the digest 
 #
-    echo "$Usage" "$Selector" "$Type" $( extract "$Selector" "$4" | digest "$Type" | format )
+    echo "$Usage" "$Selector" "$Type" "$( extract "$Selector" "$4" | digest "$Type" | format )"
 #
 # Check the previous steps worked
 #

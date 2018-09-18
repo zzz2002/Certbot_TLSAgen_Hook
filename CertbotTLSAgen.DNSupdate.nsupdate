@@ -43,7 +43,7 @@ if [[ -s "$2" ]]; then 						# check to see if the input file contains any recor
 	    fi
 	    exitCode=$((PIPESTATUS+exitCode)) 
 	done < "$2"
-	printf -- "%s %s - *** %s  - using records from \"%s\" ended *** exit code: %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$1" "$2" "$exitCode" >>"$4"
+	printf -- "%s %s - *** %s - records from \"%s\", exit code: %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$1" "$2" "$exitCode" >>"$4"
 fi
 
 exit "$exitCode"
