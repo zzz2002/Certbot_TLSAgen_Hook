@@ -30,20 +30,25 @@ shopt -s extglob
 #		  and removing old tlsa records. Usually their TTL or a multiple thereof
 #		4 logfile to be used
 #
-exitCode=0							# set the exit code to OK, if there is a problem it will be reset
+exec >>"$4" 2>&1					# redirect stdout & stderr to the logfile
 
-exec >>"$4" 2>&1						# redirect stdout & stderr to the logfile
+iR=0							# initialize the input count
+oR=0							# initialize the output count
+fR=0							# initialize the fail count
 
 if [[ -s "$2" ]]; then 						# check to see if the input file contains any records, if yes proceed else exit.
 	while read -r tlsaRecord; do
-	    printf -- "server 127.0.0.1\n%s  %s\nsend\nquit\n" "${1,,}" "$tlsaRecord" | nsupdate -v -k /var/run/named/session.key 
-	    if [[ $? -ne 0 ]]; then
-		printf -- "%s %s - *** ERROR *** \"%s\" from \"%s\" failed %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$1" "$2" >>"$4"
-		exitCode=$((exitCode+9))
-	    fi
-	    exitCode=$((PIPESTATUS+exitCode)) 
+		(( iR += 1 ))
+		printf -- "server 127.0.0.1\n%s  %s\nsend\nquit\n" "${1,,}" "$tlsaRecord" | nsupdate -v -k /var/run/named/session.key
+		if [[ $? -ne 0 ]]; then
+			printf -- "%s %s - *** ERROR *** \"%s\" from \"%s\" failed\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$1" "$2" 
+			(( fR += 1 ))
+		else
+			(( oR += 1 ))
+		fi
 	done < "$2"
-	printf -- "%s %s - *** %s - records from \"%s\ using nsupdate", exit code: %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$1" "$2" "$exitCode" >>"$4"
+	echo $iR $oR $fR
+	printf -- "%s %s - *** \"%s\" - %d records from \"%s\" using nsupdate. failed %d, output %d\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$1" "$iR" "$2" "$fR" "$oR"
 fi
 
-exit "$exitCode"
+exit
