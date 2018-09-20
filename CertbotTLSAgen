@@ -56,27 +56,25 @@ declare -A pseudoSRVrecords							# associative array to be used when DNS SRV re
 
 updateAction="$defaultUpdateAction"						# which DNS update routine to use
 
-CA_Record=y									# do we want dane-ca/ta records
-CA_Usage=dane-ca								# dane-ca/ta usage 
-CA_Selector=pkey								# dane-ca/ta selector 
-CA_Type=sha-256									# dane-ca/ta type
+CA_Record='y'									# do we want dane-ca/ta records
+CA_Usage='dane-ca'								# dane-ca/ta usage 
+CA_Selector='pkey'								# dane-ca/ta selector 
+CA_Type='sha-256'									# dane-ca/ta type
 
-EE_Record=y									# do we want dane-ee records
-EE_Usage=dane-ee								# dane-ee usage - always dan-ee
-EE_Selector=pkey								# dane-ee selector 
-EE_Type=sha-256									# dane-ee type
+EE_Record='y'									# do we want dane-ee records
+EE_Usage='dane-ee'								# dane-ee usage - always dan-ee
+EE_Selector='pkey'								# dane-ee selector 
+EE_Type='sha-256'									# dane-ee type
 
 TLSA_TTL=1800									# TLSA DNS record TTL in seconds 
 TLSA_RemoveDelay=3600								# The interval in seconds between adding new TLSA records and removing the
 										#   old ones.
-TLSA_AutoRemove=no								# Do we want the automatically remove old records.
+TLSA_AutoRemove='no'								# Do we want the automatically remove old records.
 										# The removal process is done by spawning a background process that waits
 						 				#  until the TLSA_RemoveDelay interval has passed.
 
-logOnly=no									# temp work around sysout + syslog
-logFile="/var/log/letsencrypt/tlsagen.log"					# logfile name & path
-
-outputFilepath='/etc/letsencrypt/live'						#if not specified, defaults to the certbot lineage
+logOnly='no'									# temp work around sysout + syslog
+logFile='/var/log/letsencrypt/tlsagen.log'					# logfile name & path
 
 ########################################################################################################
 ########################################################################################################
@@ -85,10 +83,10 @@ outputFilepath='/etc/letsencrypt/live'						#if not specified, defaults to the c
 #	Just in case a non-English user has used the English y/yes/... or n/no... append them to the test check.
 #
 normalizeResponse() {
-    local x="$1"						     # save the input value in x, if we don't understand it then just pass it back unchanged
-    [[ ${1,,} = @(${positiveResponses}|y|yes|t|true) ]] && x='y'     # if the input variable is one of the positive responses, set response to y
-    [[ ${1,,} = @(${negativeResponses}|n|no|f|false) ]] && x='n'     # if the input variable is one of the negative responses, set response to n
-    echo "$x"							     # pass back the normalized value or the original
+    local x="$1"								   # save the input value in x, if we don't understand it then just pass it back unchanged
+    [[ ${1,,} = @(${positiveResponses%%|}|y|yes|t|true) ]] && { echo 'y'; exit; }  # if the input variable is one of the positive responses, set response to y
+    [[ ${1,,} = @(${negativeResponses%%|}|n|no|f|false) ]] && { echo 'n'; exit; }  # if the input variable is one of the negative responses, set response to n
+    echo "$x"									   # pass back the normalized value or the original
 }
 
 #
@@ -121,7 +119,7 @@ outputMessage() {
     local extraData												# additional data 
     local badCode												# variable to save additional data 
     local xitCode												# just what it says it is
-    errorCode=${1^^}												# set the internal variable to the upper case $1
+    errorCode="${1^^}"												# set the internal variable to the upper case $1
     [[ -z "$errorCode" || -z "${messageText[$errorCode]}" ]] && { badCode="$errorCode"; errorCode='E999'; }	# did we get passed an error code and do we
 														#   have a message for it
 														# no, set the oops code and save the actual
@@ -172,7 +170,7 @@ loadLanguageDependent() {
 	    case "${inputType^^}" in
 		I|W|E)							# is it a message
 		    messageNumber="${inputLine:0:4}"			# extract the message number
-		    messageText[${messageNumber^^}]=${inputLine:5}	# using the message number as the key save the text in array
+		    messageText[${messageNumber^^}]="${inputLine:5}"	# using the message number as the key save the text in array
 		;;
 		R)							# is this a response record
 									# positive responses are indicated by a '+' sign
@@ -197,8 +195,8 @@ loadLanguageDependent() {
 setLineage() {
 	certbotLineage="$RENEWED_LINEAGE"
 	[[ $1 ]] && certbotLineage="$1"
-	[[ $certbotLineage ]] || { outputMessage e001; return $?; }
-	[[ ! -d $certbotLineage ]] && { outputMessage e002; return $?; }
+	[[ $certbotLineage ]] || { outputMessage 'e001'; return $?; }
+	[[ ! -d $certbotLineage ]] && { outputMessage 'e002'; return $?; }
 	return 0
 }
 # Has $2 or the environment variable RENEWED_DOMAINS been set. 
@@ -207,7 +205,7 @@ setLineage() {
 setDomains() {
 	read -r -a certbotDomains <<< "$RENEWED_DOMAINS"
 	[[ $1 ]] && read -r -a certbotDomains <<< "$1" 
-	[[ ${#certbotDomains[@]} -le 0 ]] && { outputMessage e003; return $?; }
+	[[ ${#certbotDomains[@]} -le 0 ]] && { outputMessage 'e003'; return $?; }
 	return 0
 }
 #
@@ -304,7 +302,7 @@ generateDigest() {
 #
 #	We should now know the name and location of the logfile, redirect stderr to it
 #
-    exec 2>>"$logFile" 
+exec 2>>"$logFile" 
 
 #	Check to see if we have a file for $LANG (I use only the language code, I strip off the utf_8)
 #	If so load the language specific file else load the Canadian English as the default and
@@ -413,7 +411,7 @@ if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
 		echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" 0 "$logFile" | at now + $((TLSA_RemoveDelay/60)) minutes
 	fi
 else
-	outputMessage i016
+	outputMessage 'i016'
 fi
 
 exit 0
