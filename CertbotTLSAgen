@@ -130,8 +130,8 @@ outputMessage() {
 														#   the message repeat
     extraData="${extraData%%\ *}"										# 
     [[ -n "$extraData" || -n "$badCode" ]] && extraData=' ** '"$badCode $extraData"				# add the separator to front of this data
-    printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" "${@:2:$msgVars}" "$extraData" >>"$logFile"
-    [[ "$logOnly" = n ]] && printf  "%s - %s ${messageText[$errorCode]:2}  \n" "${0##*/}" "$errorCode" "${@:2:$msgVars}" 
+    printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" "${@:2:$msgVars}" "$extraData" >>"$logFile"
+    [[ "$logOnly" = n ]] && printf  "%s - %s ${messageText[$errorCode]:2} \\n" "${0##*/}" "$errorCode" "${@:2:$msgVars}" 
 
     case ${errorCode:0:1} in
 	I|W) xitCode=0;;											# for info and warning messages return 0
@@ -212,8 +212,8 @@ setDomains() {
 #
 getServiceData() {
     local -a abc
-    if [ ${#pseudoSRVrecords[@]} -le 0 ]; then 							# are we using pseudo records
-	read -r -a abc <<<"$(dig @"$preferedNameserver" +short _"$1"._tcp."$2"  SRV )"		# No, use DIG to get SRV records (preferred)
+    if [ ${#pseudoSRVrecords[@]} -le 0 ]; then 								# are we using pseudo records
+	read -r -a abc <<<"$(dig @"$preferedNameserver" +short _"$1"._tcp."$2"  SRV )"	# No, use DIG to get SRV records (preferred)
     else
 	read -r -a abc <<< "0 0 ${pseudoSRVrecords[$1.$2]}"					# Yes, Get data from pseudo SRV array
     fi
@@ -360,7 +360,7 @@ for domain in "${certbotDomains[@]}"; do						# For each (sub)domain listed in t
 			    if [[ "$aLine" = "$dane_caDigest" ]]; then
 			        duplicateCA=y
 			    else
-				printf "_%d._tcp.%s %d IN TLSA %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$aLine" >> "$TLSA_delete_filename"
+				printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$aLine" >> "$TLSA_delete_filename"
 				outputMessage i010 "$service" "$srv_port" "$srv_host"
 			    fi
 			;;
@@ -368,7 +368,7 @@ for domain in "${certbotDomains[@]}"; do						# For each (sub)domain listed in t
 			    if [[ "$aLine" = "$dane_eeDigest" ]]; then
 				duplicateEE=y
 			    else
-				printf "_%d._tcp.%s %d IN TLSA %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$aLine" >> "$TLSA_delete_filename"
+				printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$aLine" >> "$TLSA_delete_filename"
 				outputMessage i011 "$service" "$srv_port" "$srv_host"
 			    fi
 			;;
@@ -378,12 +378,12 @@ for domain in "${certbotDomains[@]}"; do						# For each (sub)domain listed in t
 		done < <(dig @"$preferedNameserver" +short +nosplit _"$srv_port"._tcp."$srv_host" TLSA )
 
 		if [[ "$CA_Record" = y && "$duplicateCA" = n ]]; then
-		    printf "_%d._tcp.%s %d IN TLSA %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$dane_caDigest" >> "$TLSA_add_filename"
+		    printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$dane_caDigest" >> "$TLSA_add_filename"
 		    outputMessage i012 "$service" "$srv_port" "$srv_host"
 		fi
 
 		if [[ "$EE_Record" = y && "$duplicateEE" = n ]]; then
-		    printf "_%d._tcp.%s %d IN TLSA %s\n" "$srv_port" "$srv_host" "$TLSA_TTL" "$dane_eeDigest" >> "$TLSA_add_filename"
+		    printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$dane_eeDigest" >> "$TLSA_add_filename"
 		    outputMessage i013 "$service" "$srv_port" "$srv_host"
 		fi
 	    fi

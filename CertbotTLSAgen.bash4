@@ -1,5 +1,0 @@
-#
-#
-#  
-#tolower() { echo ${1,,}; }; 
-#toupper() { echo ${1^^}; };

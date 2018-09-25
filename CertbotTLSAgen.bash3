@@ -1,5 +1,0 @@
-#
-# 
-#
-#tolower() { $(printf %s "$1" | tr "[:upper:]" "[:lower:]"); };
-#toupper() { $(printf %s "$1" | tr "[:lower:]" "[:upper:]"); };
