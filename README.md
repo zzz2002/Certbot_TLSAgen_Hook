@@ -11,7 +11,7 @@ See the GNU General Public License for more details._
 _You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>._
 
-_if you wish to contact me please email me at zzz2002@gmail.com_
+_If you wish to contact me please email me at zzz2002@gmail.com_
 
 _Last modified:_
 
