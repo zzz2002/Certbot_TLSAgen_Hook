@@ -1,11 +1,13 @@
 #!/bin/bash
 # -*- mode: bash; -*-
+
 # CerbotTlsagen is a Certbot renew-hook designed to generate and automatically add and delete TLSA records. 
 # Copyright (c) 2017, 2018 John L. Allen
+
 # This program is free software: you can redistribute it and/or modify it under the terms of the 
 # GNU General Public License as published by the Free Software Foundation, either version 3 of 
 # the License, or (at your option) any later version.
-#
+
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
 # without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
 # See the GNU General Public License for more details.
@@ -13,14 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+# If you wish to contact me please email me at zzz2002@gmail.com
+
+#----------------------------------------------------------------------------------------------------
 #Last modified:
-#	2018-08-29 14:05 minor spelling corrections
-#	2018-09-02 10:30 
-#	2018-09-16 10:18 
 #	2018-09-16 10:29 made the nameserver for dig command a variable 
 #	2018-09-16 11:20 made changes recommended by pgas
-#	2018-09-17 14:25:16 change echo to printf where appropriate
-#=============
+#	2018-09-17 14:25 change echo to printf where appropriate
+#----------------------------------------------------------------------------------------------------
+
 if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
     echo "error: script must run in bash version 4.0 or later"
     false
@@ -75,6 +78,8 @@ TLSA_AutoRemove='no'								# Do we want the automatically remove old records.
 
 logOnly='no'									# temp work around sysout + syslog
 logFile='/var/log/letsencrypt/tlsagen.log'					# logfile name & path
+
+outputFilepath=									# Location of output files. Usually set to Certbot Lineage
 
 ########################################################################################################
 ########################################################################################################
@@ -212,8 +217,8 @@ setDomains() {
 #
 getServiceData() {
     local -a abc
-    if [ ${#pseudoSRVrecords[@]} -le 0 ]; then 								# are we using pseudo records
-	read -r -a abc <<<"$(dig @"$preferedNameserver" +short _"$1"._tcp."$2"  SRV )"	# No, use DIG to get SRV records (preferred)
+    if [ ${#pseudoSRVrecords[@]} -le 0 ]; then 							# are we using pseudo records
+	read -r -a abc <<<"$(dig @"$preferedNameserver" +short _"$1"._tcp."$2"  SRV )"		# No, use DIG to get SRV records (preferred)
     else
 	read -r -a abc <<< "0 0 ${pseudoSRVrecords[$1.$2]}"					# Yes, Get data from pseudo SRV array
     fi
@@ -226,6 +231,12 @@ getServiceData() {
 generateDigest() {
 #
 # generate the DER data for the digest from the certificate
+#
+# Parameters are
+#	1	Certificate usage
+#	2	Certificate selector
+#	3	Certificate type
+#	4	Path to the certificate for which we are generating TLSA records
 #
     extract() {
         case "$1" in
