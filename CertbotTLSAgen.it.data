@@ -1,14 +1,26 @@
-# CerbotTlsagen.it.data --- Italian version of the messages and language dependent data file
+# CerbotTlsagen.it.data is part of the CertbotTLSAgen package. 
 # Copyright (c) 2017, 2018 John L. Allen
+
 # This program is free software: you can redistribute it and/or modify it under the terms of the 
 # GNU General Public License as published by the Free Software Foundation, either version 3 of 
 # the License, or (at your option) any later version.
-#
+
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
 # without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
 # See the GNU General Public License for more details.
 
-#	Italian
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# If you wish to contact me please email me at zzz2002@gmail.com
+
+#----------------------------------------------------------------------------------------------------
+#Last modified:
+#
+#----------------------------------------------------------------------------------------------------
+
+#	Italian version of the messages and language dependent data file
+
 #	tradotto da Inglese Canadese utilizzando Google Translate
 #	Questi file dipendono dalla data dipendente dalla lingua conatin. La prima lettera del record viene utilizzata per indicare il tipo.
 #	R - valori di risposta sì / no / true / false.
@@ -49,7 +61,7 @@ E002 0 Il parametro della riga di comando 1 o la variabile evironment \"RENEWED_
 E003 0 Il parametro della riga di comando 2 o la variabile evironment \"RENEWED_DOMAINS\" non è stata impostata.
 E004 0 È necessario impostare almeno una delle seguenti opzioni su sì, CA_Required o EE_Required
 #
-I998 1 Tempo trascorso %d ms.
+#I998 1 Tempo trascorso %d ms.
 E999 0 Un errore sconosciuto si è verificato.
 #
 M001 0 test di posta elettronica qui :# futuri messaggi di posta elettronica ??
