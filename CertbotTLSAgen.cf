@@ -1,4 +1,4 @@
-# CerbotTlsagen --- Configuration file example
+# CerbotTlsagen Configuration file example. This is part of the CertbotTLSAgen package.
 # Copyright (c) 2017, 2018 John L. Allen
 
 # This program is free software: you can redistribute it and/or modify it under the terms of the 
@@ -12,8 +12,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+# If you wish to contact me please email me at zzz2002@gmail.com
+
+#----------------------------------------------------------------------------------------------------
 #
-#declare -r installPath="/usr/local/bin"	# where we are installed/stored, use declare -r to make it read only
+# Last modified:
+#
+#----------------------------------------------------------------------------------------------------
+#
+#
+#declare -r installPath='/usr/local/bin'	# where we are installed/stored, use declare -r to make it read only
 #
 #	Which services do we want TLSA records for, services is an array of servics we want TLSA records for
 #services=( smtp smtps submission imap sieve dav davical https )
@@ -29,17 +37,17 @@
 #	Ideally things like TLSA records etc, should not be cached, unfortunately we don't live in an ideal world
 #
 #	The following parameters will produce 2 1 1 Certificate Authority certificate
-#CA_Required=y
-#CA_Usage=dane-ca					#	TLSA usage	also seen as 3 in TLSA records
-#CA_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
-#CA_Type=sha-256					#	TLSA type	also seen as 1 in TLSA records
+#CA_Required='y'
+#CA_Usage='dane-ca'					#	TLSA usage	also seen as 3 in TLSA records
+#CA_Selector='pkey'					#	TLSA selector	also seen as 1 in TLSA records
+#CA_Type='sha-256'					#	TLSA type	also seen as 1 in TLSA records
 #
 #	The following parameters will produce 3 1 1 TLSA certificate
 #
-#EE_Required=y
-#EE_Usage=dane-ee					#	TLSA usage	also seen as 3 in TLSA records
-#EE_Selector=pkey					#	TLSA selector	also seen as 1 in TLSA records
-#EE_Type=sha-256					#	TLSA type	also seen as 1 in TLSA records
+#EE_Required='y'
+#EE_Usage='dane-ee'					#	TLSA usage	also seen as 3 in TLSA records
+#EE_Selector='pkey'					#	TLSA selector	also seen as 1 in TLSA records
+#EE_Type='sha-256'					#	TLSA type	also seen as 1 in TLSA records
 #
 #
 #	The TTL for TLSA records should be kept low, probably not more the 1 hour. If a certificate is compromised you want the 
@@ -48,7 +56,7 @@
 #
 #TLSA_TTL=1800						# TLSA DNS record TTL in seconds (15 minutes)
 #TLSA_RemoveDelay=5400					# The interval in seconds between adding new TLSA records and removing the old ones.
-#TLSA_AutoRemove=no					# Automatically remove old/replaced TLSA records 
+#TLSA_AutoRemove='no'					# Automatically remove old/replaced TLSA records 
 #
 #
 #	The TLSA update records will be put in either the "TLSA_additions" or "TLSA_deletions" file, these files are currently saved 
@@ -56,11 +64,11 @@
 #	NB.If you have more than one certificate for which you create TLSA records you will need one path per certificate. 
 #	This can be done by setting this in the certicate version of the config file.
 #
-#outputFilepath="/tmp"
+#outputFilepath='/tmp'
 #
 #
-#logOny="no"						# When running standalone output messages to stdout
-#logFile="/var/log/letsencrypt/tlsagen.log"		# Name and location of the log file associated with this app
+#logOny='no'						# When running standalone output messages to stdout
+#logFile='/var/log/letsencrypt/tlsagen.log'		# Name and location of the log file associated with this app
 #
 ####################################################################################################################################
 ####################################################################################################################################
