@@ -27,7 +27,7 @@
 #services=( smtp smtps submission imap sieve dav davical https )
 #
 #
-#updateAction="manual"
+#updateAction='manual'
 #	After the TLSA records have bee created they need tobe added to your DNS system.
 #	the methodes currently available are:
 #		manual	- the system takes no action. To add the TLSA records to your DNS, you must do the updatethe zone files  manually.
@@ -79,12 +79,12 @@
 #	dig would return priority, weight, port and target, as we do not use priority or weight they are not included in the table,
 #	the function that gets this info from either dig or this array returns  0 0 for these params.
 #
-#pseudoSRVrecords=( [smtp.example.com]='25 smtp.example.com.' 
-#		    [submission.example.com]='587 smtp.example.com.'
-#		    [imap.example.com]='993 imap.example.com.'
-#		    [sieve.example.com]='4190 sieve.example.com.' 
-#		    [dav.example.com]='443 dav.example.com.' 
-#		    [davical.example.com]='443 davical.example.com.' 
-#		    [https.example.com]='443 www.example.com.' )
+#pseudoSRVrecords=( [smtp.example.com.]='25 smtp.example.com.' 
+#		    [submission.examp.le.com]='587 smtp.example.com.'
+#		    [imap.example.com.]='993 imap.example.com.'
+#		    [sieve.example.com.]='4190 sieve.example.com.' 
+#		    [dav.example.com.]='443 dav.example.com.' 
+#		    [davical.example.com.]='443 davical.example.com.' 
+#		    [https.example.com.]='443 www.example.com.' )
 #
 #

@@ -40,23 +40,23 @@ shopt -s extglob
 #
 exec >>"$4" 2>&1					# redirect stdout & stderr to the logfile
 
-iR=0							# initialize the input count
-oR=0							# initialize the output count
-fR=0							# initialize the fail count
+inputRecords=0						# initialize the input count
+outputRecords=0						# initialize the output count
+failedRecords=0							# initialize the fail count
 
 if [[ -s "$2" ]]; then 						# check to see if the input file contains any records, if yes proceed else exit.
 	while read -r tlsaRecord; do
-		(( iR += 1 ))
+		(( inputRecords += 1 ))
 		printf -- 'server 127.0.0.1\n%s  %s\nsend\nquit\n' "${1,,}" "$tlsaRecord" | nsupdate -v -k /var/run/named/session.key
 		if [[ $? -ne 0 ]]; then
 			printf -- '%s %s - *** ERROR *** \"%s\" from \"%s\" failed\n' "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$1" "$2" 
-			(( fR += 1 ))
+			(( failedRecords += 1 ))
 		else
-			(( oR += 1 ))
+			(( outputRecords += 1 ))
 		fi
 	done < "$2"
 
-	printf -- '%s %s - *** \"%s\" - %d records from \"%s\" using nsupdate. output %d failed %d \n' "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$1" "$iR" "$2" "$oR" "$fR"
+	printf -- '%s %s - *** \"%s\" - %d records from \"%s\" using nsupdate. output %d failed %d \n' "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$1" "$inputRecords" "$2" "$outputRecords" "$failedRecords"
 fi
 
 exit
