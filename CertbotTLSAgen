@@ -22,7 +22,7 @@
 #	2018-09-16 10:29 made the nameserver for dig command a variable 
 #	2018-09-16 11:20 made changes recommended by pgas
 #	2018-09-17 14:25 change echo to printf where appropriate
-#	2018--9-29 07:32 Changed the delete delay to rpund up to the nearest minute.
+#	2018--9-29 07:32 Changed the delete delay to round up to the nearest minute.
 #----------------------------------------------------------------------------------------------------
 
 if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then

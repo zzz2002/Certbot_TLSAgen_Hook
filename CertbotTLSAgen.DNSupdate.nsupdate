@@ -42,9 +42,9 @@ exec >>"$4" 2>&1					# redirect stdout & stderr to the logfile
 
 inputRecords=0						# initialize the input count
 outputRecords=0						# initialize the output count
-failedRecords=0							# initialize the fail count
+failedRecords=0						# initialize the fail count
 
-if [[ -s "$2" ]]; then 						# check to see if the input file contains any records, if yes proceed else exit.
+if [[ -s "$2" ]]; then 					# check to see if the input file contains any records, if yes proceed else exit.
 	while read -r tlsaRecord; do
 		(( inputRecords += 1 ))
 		printf -- 'server 127.0.0.1\n%s  %s\nsend\nquit\n' "${1,,}" "$tlsaRecord" | nsupdate -v -k /var/run/named/session.key

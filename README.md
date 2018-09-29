@@ -15,7 +15,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>._
 _If you wish to contact me please email me at zzz2002@gmail.com_
 
 _Last modified:_
-2018-09-29 07:36 correct some spelling erros. As I cannot spell there will be many more of these!!!
+2018-09-29 07:36 correct some spelling errors. As I cannot spell or type there will be many more of these!!!
 
 # Certbot TLSA Generator
 
