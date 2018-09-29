@@ -22,6 +22,7 @@
 #	2018-09-16 10:29 made the nameserver for dig command a variable 
 #	2018-09-16 11:20 made changes recommended by pgas
 #	2018-09-17 14:25 change echo to printf where appropriate
+#	2018--9-29 07:32 Changed the delete delay to rpund up to the nearest minute.
 #----------------------------------------------------------------------------------------------------
 
 if [[ "${SHELL##*/}" != 'bash' || "${BASH_VERSINFO[0]:0:1}" -lt 4 ]]; then
@@ -133,7 +134,7 @@ outputMessage() {
 														#   this message
     extraData="${*:$(( msgVars + 2 ))}"										# save the extra data in a variable, stops
 														#   the message repeat
-    extraData="${extraData%%\ *}"										# 
+    extraData="${extraData%%\ \ *}"										# 
     [[ -n "$extraData" || -n "$badCode" ]] && extraData=' ** '"$badCode $extraData"				# add the separator to front of this data
     printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" "${@:2:$msgVars}" "$extraData" >>"$logFile"
     [[ "$logOnly" = n ]] && printf  "%s - %s ${messageText[$errorCode]:2} \\n" "${0##*/}" "$errorCode" "${@:2:$msgVars}" 
@@ -405,7 +406,7 @@ done
 #	Finished creating TLSA update records.
 
 #	Check to see if additions or deletions were created
-#	if there are additions, process them y running the DNS update function now!
+#	if there are additions, process them by running the DNS update function now!
 #	if there are deletions, spawn the DNS update function to run as a background task - it should sleep until the remove delay has expired
 
 if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
@@ -419,7 +420,7 @@ if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
 #   anything to delete
     	if [[ "$TLSA_AutoRemove" = y && -s "$TLSA_delete_filename" ]]; then
 		outputMessage i015 "$TLSA_RemoveDelay"
-		echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" 0 "$logFile" | at now + $((TLSA_RemoveDelay/60)) minutes
+		echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" 0 "$logFile" | at now + $(((TLSA_RemoveDelay+30)/60)) minutes
 	fi
 else
 	outputMessage 'i016'

@@ -16,13 +16,13 @@
 
 #----------------------------------------------------------------------------------------------------
 #Last modified:
-
+	2018-09-29 07:39 commenting out message I998 no longer used
 #----------------------------------------------------------------------------------------------------
 
 #	Canadian English version of the messages and language dependent data file
 
 #
-#	These files conatin language dependent date. the first letter of the record is used to indicate type.
+#	These files contain language dependent date. the first letter of the record is used to indicate type.
 #	R - response values yes/no/true/false. 
 #		+ for positive values yes...
 #		- for negative values no...

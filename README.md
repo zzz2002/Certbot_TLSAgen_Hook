@@ -1,5 +1,6 @@
 CerbotTLSAgen is a Certbot renew-hook designed generate and automatically add and delete TLSA records.\
 **Copyright (c) 2017, 2018 John L. Allen**\
+
 _This program is free software: you can redistribute it and/or modify it under the terms of the 
 GNU General Public License as published by the Free Software Foundation, either version 3 of 
 the License, or (at your option) any later version._
@@ -14,11 +15,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>._
 _If you wish to contact me please email me at zzz2002@gmail.com_
 
 _Last modified:_
-
+2018-09-29 07:36 correct some spelling erros. As I cannot spell there will be many more of these!!!
 
 # Certbot TLSA Generator
 
-I wrote this bash script to automate the process of generating and updating the TLSA records in my DNS (Bind9). It started out to be a “simple” wrapper to Viktor Dukhovni's tlsagen script.
+I wrote this bash script to automate the process of generating and updating the TLSA records in my DNS (Bind9). 
+It started out to be a “simple” wrapper to Viktor Dukhovni's tlsagen script.
 
 It can be run two way
 1) as a Letsencrypt (certbot) renew-hook.
@@ -26,7 +28,8 @@ It can be run two way
 
 ## Operating as a Renew-Hook
 
-After a certificate has been renewed and new certificates generated, certbot calls any "renew-hooks" that have been specified to be run, once for each successfully renewed certificate. ~~The "hook" is passed two arguments,~~
+After a certificate has been renewed and new certificates generated, certbot calls any "renew-hooks" that have been specified to be run,
+once for each successfully renewed certificate. ~~The "hook" is passed two arguments,~~
 1. **$RENEWED_LINEAGE** is the location of the new certs and keys. Currently this is usually "/etc/letsencrypt/live/*certificate-name*"
 2. **$RENEWED_DOMAINS** which contains a space delimited list of the certificate’s domains and subdomains.
 ## Standalone operation
@@ -47,7 +50,8 @@ The first is the list of services for which we want TLSA records.  Common servic
 |sieve|4190|I am not sure if this should be included. |
 |<dl><dd>caldav</dd><dd>carddav</dd><dd>https</dd></dl>|443||
 
-For each service that we require a TLSA record for, we check to see if the service host matches one the domains or sub-domains in the certificate. If it does then a TLSA record using the port, service host and certificate is generated. We use TCP as the default protocol.
+For each service that we require a TLSA record for, we check to see if the service host matches one the domains or sub-domains in the certificate. 
+If it does then a TLSA record using the port, service host and certificate is generated. We use TCP as the default protocol.
 ## Installation
 Copy the all files to a location of your choice. Ensure that CertbotTLSAgen and any CertbotTLSAgen.DNSupdate.\* files are executable.
 Copy the file *CertbotTLSAgen.cf* to */etc/defaults.* and to *…/letsencrypt/live/certificate-name*.
@@ -55,14 +59,16 @@ Follow the instruction about activating a renew-hook in the Letsencrypt document
 
 ## Configuration
 As we cannot use command line parameters when called as a Certbot renew-hook all other parameters have to set using configuration files.\
-I use the */etc/default/CertbotTLSAgen.cf* for general/global parameters, and similar file placed in the *…/letsencrypt/live/cert-name/CetbotTLSAgen.cf* for certificate specific parameters.
+I use the */etc/default/CertbotTLSAgen.cf* for general/global parameters, 
+and similar file placed in the *…/letsencrypt/live/cert-name/CetbotTLSAgen.cf* for certificate specific parameters.
 
 The parameters in the certificate specific file ***override*** the general/global parameters.
 
 ### installPath="/usr/local/bin"
 The “installPath” variable indicates where CertbotTLSAgen and its associated files are stored.
 In the latest version this is retrieved/set by using the *dirname $(readlink -f "$0")*\
-If **THIS MUST BE SET** then I would strongly suggest setting it in global configuration file (*/etc/default/CertbotTLSAgen.cf*) and that the variable be made read only in order to ensure that this is not accidentally modified.\
+If **THIS MUST BE SET** then I would strongly suggest setting it in global configuration file (*/etc/default/CertbotTLSAgen.cf*) 
+and that the variable be made read only in order to ensure that this is not accidentally modified.\
 e.g. declare -r installPath="/usr/local/bin" use declare -r to make it read only
 
 
@@ -126,4 +132,5 @@ pseudoSRVrecords=( [smtp.example.com]='25 smtp.example.com.'
 		   [https.example.com]='443 www.example.com.' ) 
 ```
 Rather than using DIG to retrieve ports and targets, we can use a pseudo dig operation to retrieve this data.
-pseudoSRVrecords is an associative array, the index to the array is the service host each entry in the array consists of the port associated with the service and the target URL for the service.
+pseudoSRVrecords is an associative array, the index to the array is the service host each entry in the array
+consists of the port associated with the service and the target URL for the service.
