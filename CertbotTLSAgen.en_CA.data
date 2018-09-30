@@ -35,7 +35,7 @@
 #	Other
 #		M is tentatively reserved for email text/address ..., but it has not been implemented yet.
 #
-#	** comments may be added to lines by prefixing them with ':#" anything after that will be ignored
+#	** comments may be added to lines by prefixing the comment with ':#" anything on a line after that will be ignored
 #
 R+     y|yes|t|true|1             :#  Language specific positive responses
 R-     n|no||f|false|0            :#  Language specific negative responses
@@ -58,6 +58,7 @@ W006 1 Invalid selector: %s, defaulting to pkey or 1.
 W007 1 Invalid matching type: %s, defaulting to sha-256 or 1.
 W008 2 The DNS update method \"%s\" is not known or is unavailable, switching to the default \"%s\" method.
 W009 2 No langauge dependence module for \"%s\" is available, using the module for \"%s\" as the default.
+W010 0 The number of TLSA update files to be kept must be a postitive number between 0 and 10. set to 0
 #
 E001 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" was not set.
 E002 0 Command line parameter 1 or the evironment variable \"RENEWED_LINEAGE\" is not a directory.

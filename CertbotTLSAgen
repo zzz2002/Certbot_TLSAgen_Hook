@@ -82,6 +82,8 @@ logFile='/var/log/letsencrypt/tlsagen.log'					# logfile name & path
 
 outputFilepath=									# Location of output files. Usually set to Certbot Lineage
 
+fileHistoryCount=0								# the number old add/delete files to keep as history
+
 ########################################################################################################
 ########################################################################################################
 #
@@ -115,6 +117,10 @@ normalizeSystemVariables() {
     EE_Usage="${EE_Usage,,}"
     EE_Selector="${EE_Selector,,}"
     EE_Type="${EE_Type,,}"
+
+    [[ $fileHistoryCount < 0 ]] && { outputMessage W010; fileHistroyCount=0}
+    [[ $fileHistoryCount > 10 ]] && { outputMessage w010; fileHistroyCount=0}
+
 }
 #
 #
@@ -225,7 +231,22 @@ getServiceData() {
     fi
     [[ ${#abc[@]} -gt 2 ]] && echo "${abc[2]}" "${abc[3]}" || echo '0 service.not.found.'	# Check we got some date, Y - Return Port and Host. N - Return 0 and error.
 }
-
+#
+#
+function manageFileHistory() {
+#	$1 is the number of previous/history files to keep. if $1 = zero we don't want a history
+#	$2 is the base path and file name be used 
+#
+	if [ "$1" -gt 0 ]; then						# if zero skip rename loop and just rename temp to final output
+	    for (( i=$(($1-1)); i>0; i-- )); do				# a history with n elements results in files named xxx.n-1 to xxx.0  
+		[ -s "$2.$((i-1))" ] && mv "$2.$((i-1))" "$2.$i"	# if file xxx.n-1 exists rename it the xxx.n
+	    done
+	    if [ -s "$2" ]; then 
+		mv "$2" "$2.0"						# rename the current working file to xxx.0
+	    fi
+	fi
+	mv "$2.temp" "$2"						# rename the temp file to be the new current TLSA file ready for subsequent use.
+}
 #                  The following code was "borrowed" from Viktor Dukhovni's tlsagen
 #********************************************************************************************************************
 #
@@ -297,6 +318,7 @@ generateDigest() {
 #
     exit $(( PIPESTATUS[0] | PIPESTATUS[1] | PIPESTATUS[2] ))
 }
+
 #=====================================================================================
 #		the main line of this script starts here
 #=====================================================================================
@@ -347,13 +369,14 @@ setDomains "$2" || exit				# As a command use $2, as a hook pick up RENEWED_DOMA
 [[ ! -f "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" ]] && { updateAction="$defaultUpdateAction"; outputMessage w008 "$updateAction" "$defaultUpdateAction"; }
 
 #	setup where we are going to save the additions and deletions, Would normally be Certbot Lineage, but can be overridden
-[[ -z "$outputFilepath"  ]] && outputFilepath="$certbotLineage"
+#$ [[ -z "$outputFilepath"  ]] && outputFilepath="$certbotLineage"
+outputFilepath="$certbotLineage"		the ability to set this to anything other than certbot lineage is current under development
 outputMessage i009 "$outputFilepath"
 
-TLSA_delete_filename="$outputFilepath"'/TLSA_deletions'
-[[ -s "$TLSA_delete_filename" ]] && rm "$TLSA_delete_filename"
-TLSA_add_filename="$outputFilepath"'/TLSA_additions'
-[[ -s "$TLSA_add_filename" ]] && rm "$TLSA_add_filename"
+TLSA_add_filename="$outputFilepath/TLSA_additions"
+[[ -f "$TLSA_add_filename.temp" ]] && rm "$TLSA_add_filename.temp"
+TLSA_del_filename="$outputFilepath/TLSA_deletions"
+[[ -f "$TLSA_del_filename.temp" ]] && rm "$TLSA_del_filename.temp"
 
 for domain in "${certbotDomains[@]}"; do						# For each (sub)domain listed in the input, check to see if it is a service domain 
 											# that we might like to have a TLSA record for 
@@ -372,7 +395,7 @@ for domain in "${certbotDomains[@]}"; do						# For each (sub)domain listed in t
 			    if [[ "$aLine" = "$dane_caDigest" ]]; then
 			        duplicateCA=y
 			    else
-				printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$aLine" >> "$TLSA_delete_filename"
+				printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$aLine" >> "$TLSA_del_filename.temp"
 				outputMessage i010 "$service" "$srv_port" "$srv_host"
 			    fi
 			;;
@@ -380,7 +403,7 @@ for domain in "${certbotDomains[@]}"; do						# For each (sub)domain listed in t
 			    if [[ "$aLine" = "$dane_eeDigest" ]]; then
 				duplicateEE=y
 			    else
-				printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$aLine" >> "$TLSA_delete_filename"
+				printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$aLine" >> "$TLSA_del_filename.temp"
 				outputMessage i011 "$service" "$srv_port" "$srv_host"
 			    fi
 			;;
@@ -390,12 +413,12 @@ for domain in "${certbotDomains[@]}"; do						# For each (sub)domain listed in t
 		done < <(dig @"$preferedNameserver" +short +nosplit _"$srv_port"._tcp."$srv_host" TLSA )
 
 		if [[ "$CA_Record" = y && "$duplicateCA" = n ]]; then
-		    printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$dane_caDigest" >> "$TLSA_add_filename"
+		    printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$dane_caDigest" >> "$TLSA_add_filename.temp"
 		    outputMessage i012 "$service" "$srv_port" "$srv_host"
 		fi
 
 		if [[ "$EE_Record" = y && "$duplicateEE" = n ]]; then
-		    printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$dane_eeDigest" >> "$TLSA_add_filename"
+		    printf '_%d._tcp.%s %d IN TLSA %s\n' "$srv_port" "$srv_host" "$TLSA_TTL" "$dane_eeDigest" >> "$TLSA_add_filename.temp"
 		    outputMessage i013 "$service" "$srv_port" "$srv_host"
 		fi
 	    fi
@@ -409,18 +432,18 @@ done
 #	if there are additions, process them by running the DNS update function now!
 #	if there are deletions, spawn the DNS update function to run as a background task - it should sleep until the remove delay has expired
 
-if [[ -s "$TLSA_add_filename" || -s "$TLSA_delete_filename" ]]; then
-	#   Yes
-	#   anything to add
-	if [[ -s "$TLSA_add_filename" ]]; then
-#		outputMessage i014
+if [[ -s "$TLSA_add_filename.temp" || -s "$TLSA_del_filename.temp" ]]; then
+	#   Yes, anything to add
+	if [[ -s "$TLSA_add_filename.temp" ]]; then
+		manageFileHistory "$fileHistoryCount" "$TLSA_add_filename"
 		"$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" add "$TLSA_add_filename" 0 "$logFile"
     	fi
 
-#   anything to delete
-    	if [[ "$TLSA_AutoRemove" = y && -s "$TLSA_delete_filename" ]]; then
+	#   or, to delete
+    	if [[ "$TLSA_AutoRemove" = y && -s "$TLSA_del_filename.temp" ]]; then
 		outputMessage i015 "$TLSA_RemoveDelay"
-		echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_delete_filename" 0 "$logFile" | at now + $(((TLSA_RemoveDelay+30)/60)) minutes
+		manageFileHistory "$fileHistoryCount" "$TLSA_del_filename"
+		echo "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" delete "$TLSA_del_filename" 0 "$logFile" | at now + $(((TLSA_RemoveDelay+30)/60)) minutes
 	fi
 else
 	outputMessage 'i016'

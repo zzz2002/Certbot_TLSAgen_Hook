@@ -55,6 +55,7 @@ W006 1 Selettore non valido: %s, default a pkey o 1.
 W007 1 Tipo di corrispondenza non valido: %s, in default a sha-256 o 1.
 W008 2 Il metodo di aggiornamento DNS %s non è conosciuto o non è disponibile, passando al metodo predefinito %s.
 w009 2 Non è disponibile alcun modulo di dipendenza dalla lingua per %s, usando il modulo predefinito %s
+W010 0 temp
 #
 E001 0 Il parametro della riga di comando 1 o la variabile evironment \"RENEWED_LINEAGE\" non è stata impostata.
 E002 0 Il parametro della riga di comando 1 o la variabile evironment \"RENEWED_LINEAGE\" non è una directory.

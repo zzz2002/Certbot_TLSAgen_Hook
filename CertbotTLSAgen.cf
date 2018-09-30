@@ -65,6 +65,7 @@
 #	This can be done by setting this in the certicate version of the config file.
 #
 #outputFilepath='/tmp'
+#fileHistoryCount=0
 #
 #
 #logOny='no'						# When running standalone output messages to stdout
