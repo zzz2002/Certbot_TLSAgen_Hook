@@ -63,12 +63,12 @@ updateAction="$defaultUpdateAction"						# which DNS update routine to use
 CA_Record='y'									# do we want dane-ca/ta records
 CA_Usage='dane-ca'								# dane-ca/ta usage 
 CA_Selector='pkey'								# dane-ca/ta selector 
-CA_Type='sha-256'									# dane-ca/ta type
+CA_Type='sha-256'								# dane-ca/ta type
 
 EE_Record='y'									# do we want dane-ee records
 EE_Usage='dane-ee'								# dane-ee usage - always dan-ee
 EE_Selector='pkey'								# dane-ee selector 
-EE_Type='sha-256'									# dane-ee type
+EE_Type='sha-256'								# dane-ee type
 
 TLSA_TTL=1800									# TLSA DNS record TTL in seconds 
 TLSA_RemoveDelay=3600								# The interval in seconds between adding new TLSA records and removing the
@@ -82,7 +82,7 @@ logFile='/var/log/letsencrypt/tlsagen.log'					# logfile name & path
 
 outputFilepath=									# Location of output files. Usually set to Certbot Lineage
 
-fileHistoryCount=0								# the number old add/delete files to keep as history
+fileHistoryCount='0'								# the number old add/delete files to keep as history
 
 ########################################################################################################
 ########################################################################################################
@@ -118,8 +118,7 @@ normalizeSystemVariables() {
     EE_Selector="${EE_Selector,,}"
     EE_Type="${EE_Type,,}"
 
-    [[ $fileHistoryCount < 0 ]] && { outputMessage W010; fileHistroyCount=0}
-    [[ $fileHistoryCount > 10 ]] && { outputMessage w010; fileHistroyCount=0}
+    ((10<fileHistoryCount || fileHistoryCount<0)) && { outputMessage W010; fileHistoryCount=0; }
 
 }
 #
@@ -347,6 +346,7 @@ else
     loadLanguageDependent 'en_CA'
     outputMessage w009 "${LANG%%.*}" "en_CA"    # output message about missing language dependent data module.
 fi
+
 #	normalize variable set after loading the global preferences & language etc
 normalizeSystemVariables
 
@@ -370,7 +370,8 @@ setDomains "$2" || exit				# As a command use $2, as a hook pick up RENEWED_DOMA
 
 #	setup where we are going to save the additions and deletions, Would normally be Certbot Lineage, but can be overridden
 #$ [[ -z "$outputFilepath"  ]] && outputFilepath="$certbotLineage"
-outputFilepath="$certbotLineage"		the ability to set this to anything other than certbot lineage is current under development
+#  The ability to set this to anything other than $certbotLineage is current under development
+outputFilepath="$certbotLineage"
 outputMessage i009 "$outputFilepath"
 
 TLSA_add_filename="$outputFilepath/TLSA_additions"
@@ -450,3 +451,4 @@ else
 fi
 
 exit 0
+
