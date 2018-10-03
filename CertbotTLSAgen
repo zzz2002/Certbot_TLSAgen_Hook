@@ -43,8 +43,7 @@ declare -r preferedNameserver='localhost'					#
 #
 certbotLineage=""								# path to the certbot generated cert ...(RENEWED_LINEAGE or $1)
 declare -a certbotDomains							# An array into which RENEWED_DOMAINS or $2 Domains are split
-
-
+	
 ########################################################################################################
 #############  the following variable can be overridden/set using the configuration files ##############
 ########################################################################################################
@@ -82,7 +81,7 @@ logFile='/var/log/letsencrypt/tlsagen.log'					# logfile name & path
 
 outputFilepath=									# Location of output files. Usually set to Certbot Lineage
 
-fileHistoryCount='0'								# the number old add/delete files to keep as history
+fileHistoryCount='2'								# the number old add/delete files to keep as history
 
 ########################################################################################################
 ########################################################################################################
@@ -119,38 +118,8 @@ normalizeSystemVariables() {
     EE_Type="${EE_Type,,}"
 
     ((10<fileHistoryCount || fileHistoryCount<0)) && { outputMessage W010; fileHistoryCount=0; }
-
 }
-#
-#
-#
-outputMessage() {
-    local errorCode												# local version of the error code
-    local msgVars												# number of variables a message expects 
-    local extraData												# additional data 
-    local badCode												# variable to save additional data 
-    local xitCode												# just what it says it is
-    errorCode="${1^^}"												# set the internal variable to the upper case $1
-    [[ -z "$errorCode" || -z "${messageText[$errorCode]}" ]] && { badCode="$errorCode"; errorCode='E999'; }	# did we get passed an error code and do we
-														#   have a message for it
-														# no, set the oops code and save the actual
-														#   code for diagnostics 
-    msgVars=$(( 10#${messageText[$errorCode]:0:1} ))								# yes,get the number of variables needed for
-														#   this message
-    extraData="${*:$(( msgVars + 2 ))}"										# save the extra data in a variable, stops
-														#   the message repeat
-    extraData="${extraData%%\ \ *}"										# 
-    [[ -n "$extraData" || -n "$badCode" ]] && extraData=' ** '"$badCode $extraData"				# add the separator to front of this data
-    printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" "${@:2:$msgVars}" "$extraData" >>"$logFile"
-    [[ "$logOnly" = n ]] && printf  "%s - %s ${messageText[$errorCode]:2} \\n" "${0##*/}" "$errorCode" "${@:2:$msgVars}" 
 
-    case ${errorCode:0:1} in
-	I|W) xitCode=0;;											# for info and warning messages return 0
-	E|F) xitCode=1;;											# for error or fatal return 1
-	*)   xitCode=3;;											# oops, don't know what this means, exit 3
-    esac
-    return $xitCode
-}
 #
 #	Load language dependent things like message, responses (y/n), email message texts ...
 #	the first character of each line defines it purpose
@@ -189,13 +158,40 @@ loadLanguageDependent() {
 		    [[ "${inputLine:1:1}" = '+' ]] && { positiveResponses="${inputLine:7}"; positiveResponses="${positiveResponses// /}"; }
 		    [[ "${inputLine:1:1}" = '-' ]] && { negativeResponses="${inputLine:7}"; negativeResponses="${negativeResponses// /}"; }
 		;;
-		M)							# *** future email stuff ? *** is this an email related record
-		;;
 		*)	 						#  any thing else is ignored for the moment
 		;;
 	    esac
 	fi
-    done < "$installPath"/CertbotTLSAgen."$1".data
+    done < "$installPath/CertbotTLSAgen.$1.data"
+}
+#
+#
+#
+outputMessage() {
+    local errorCode												# local version of the error code
+    local msgVars												# number of variables a message expects 
+    local extraData												# additional data 
+    local badCode												# variable to save additional data 
+    local xitCode												# just what it says it is
+    errorCode="${1^^}"												# set the internal variable to the upper case $1
+    [[ -z "$errorCode" || -z "${messageText[$errorCode]}" ]] && { badCode="$errorCode"; errorCode='E999'; }	# did we get passed an error code and do we
+														#   have a message for it
+														# no, set the oops code and save the actual
+														#   code for diagnostics 
+    msgVars=$(( 10#${messageText[$errorCode]:0:1} ))								# yes,get the number of variables needed for
+														#   this message
+    extraData="${*:$(( msgVars + 2 ))}"										# save the extra data in a variable, stops
+														#   the message repeat
+    extraData="${extraData%%\ \ *}"										# 
+    [[ -n "$extraData" || -n "$badCode" ]] && extraData=' ** '"$badCode $extraData"				# add the separator to front of this data
+    printf -- "%s %s - %s ${messageText[$errorCode]:2} %s\\n" "$(date "+%Y-%m-%d %H:%M:%S.%6N")" "${0##*/}" "$errorCode" ${@:2:$msgVars} "$extraData" >>"$logFile"
+    [[ "$logOnly" != @(y|yes) ]] && printf -- "%s - %s ${messageText[$errorCode]:2} \\n" "${0##*/}" "$errorCode" ${@:2:$msgVars} 
+    case ${errorCode:0:1} in
+	I|W) xitCode=0;;											# for info and warning messages return 0
+	E|F) xitCode=1;;											# for error or fatal return 1
+	*)   xitCode=3;;											# oops, don't know what this means, exit 3
+    esac
+    return $xitCode
 }
 #
 # Check if either the Certbot environment variables or the command line parameters have been set, this may/will depend on how this script is invoked.
@@ -233,6 +229,7 @@ getServiceData() {
 #
 #
 function manageFileHistory() {
+#
 #	$1 is the number of previous/history files to keep. if $1 = zero we don't want a history
 #	$2 is the base path and file name be used 
 #
@@ -326,10 +323,11 @@ generateDigest() {
 #	  and use a similar file placed in the ...../letsencrypt/live/$certname for certificate specific data.
 
 #	Load global user preferences (/etc/default/CertbotTLSAgen.cf)
-# shellcheck source=/etc/default/CertbotTLSAgen.cf
+#	shellcheck source=/etc/default/CertbotTLSAgen.cf
 [[ -f /etc/default/CertbotTLSAgen.cf ]] && . /etc/default/CertbotTLSAgen.cf
+
 #	Load "certificate specific" preferences.
-# shellcheck source=./CertbotTLSAgen.cf
+#	shellcheck source=./CertbotTLSAgen.cf
 [[ -f "$certbotLineage"/CertbotTLSAgen.cf ]] && . "$certbotLineage"/CertbotTLSAgen.cf
 
 #
@@ -340,11 +338,11 @@ exec 2>>"$logFile"
 #	Check to see if we have a file for $LANG (I use only the language code, I strip off the utf_8)
 #	If so load the language specific file else load the Canadian English as the default and
 #	output message about missing language dependent data module. Has to wait till now as we were still loading data.
-if [ -f "$installPath"/CertbotTLSAgen."${LANG%%.*}".data ]; then
+if [ -f "$installPath/CertbotTLSAgen.${LANG%%.*}.data" ]; then
     loadLanguageDependent "${LANG%%.*}"
 else 
     loadLanguageDependent 'en_CA'
-    outputMessage w009 "${LANG%%.*}" "en_CA"    # output message about missing language dependent data module.
+    outputMessage w009 "${LANG:-Unknown}" "en_CA"    # output message about missing language dependent data module.
 fi
 
 #	normalize variable set after loading the global preferences & language etc
@@ -369,13 +367,14 @@ setDomains "$2" || exit				# As a command use $2, as a hook pick up RENEWED_DOMA
 [[ ! -f "$installPath"/CertbotTLSAgen.DNSupdate."${updateAction}" ]] && { updateAction="$defaultUpdateAction"; outputMessage w008 "$updateAction" "$defaultUpdateAction"; }
 
 #	setup where we are going to save the additions and deletions, Would normally be Certbot Lineage, but can be overridden
-#$ [[ -z "$outputFilepath"  ]] && outputFilepath="$certbotLineage"
-#  The ability to set this to anything other than $certbotLineage is current under development
+# 	[[ -z "$outputFilepath"  ]] && outputFilepath="$certbotLineage"
+# ***   The ability to set this to anything other than certbot lineage is current under development  ***
 outputFilepath="$certbotLineage"
 outputMessage i009 "$outputFilepath"
 
 TLSA_add_filename="$outputFilepath/TLSA_additions"
 [[ -f "$TLSA_add_filename.temp" ]] && rm "$TLSA_add_filename.temp"
+
 TLSA_del_filename="$outputFilepath/TLSA_deletions"
 [[ -f "$TLSA_del_filename.temp" ]] && rm "$TLSA_del_filename.temp"
 
