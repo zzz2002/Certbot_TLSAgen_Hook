@@ -1,4 +1,4 @@
-CerbotTLSAgen is a Certbot renew-hook designed generate and automatically add and delete TLSA records.\
+CerbotTLSAgen is a Certbot renew-hook designed to generate and automatically add and delete DNS TLSA records.\
 **Copyright (c) 2017, 2018 John L. Allen**\
 
 _This program is free software: you can redistribute it and/or modify it under the terms of the 
@@ -28,10 +28,11 @@ It can be run two way
 
 ## Operating as a Renew-Hook
 
-After a certificate has been renewed and new certificates generated, certbot calls any "renew-hooks" that have been specified to be run,
-once for each successfully renewed certificate. ~~The "hook" is passed two arguments,~~
+After a certificate has been renewed and new certificates generated, certbot calls any "renew-hooks" that have been specified to be run, once for each successfully renewed certificate. ~~The "hook" is passed two arguments,~~ 
+When called as a **renew hook** two environment variables are set:
 1. **$RENEWED_LINEAGE** is the location of the new certs and keys. Currently this is usually "/etc/letsencrypt/live/*certificate-name*"
 2. **$RENEWED_DOMAINS** which contains a space delimited list of the certificate’s domains and subdomains.
+
 ## Standalone operation
 This program can also be run standalone, in which case it makes use of two positional parameters:
 1. **$1** acts in the same way as RENEWED_LINEAGE above.
