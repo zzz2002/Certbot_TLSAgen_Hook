@@ -30,7 +30,7 @@ It can be run two way
 
 After a certificate has been renewed and new certificates generated, certbot calls any "renew-hooks" that have been specified to be run, once for each successfully renewed certificate.
 Two environment variables are set:
-1. **$RENEWED_LINEAGE** is the location of the new certs and keys. 
+1. **$RENEWED_LINEAGE** is the location of the new certs and keys.
 Currently this is usually "/etc/letsencrypt/live/*certificate-name*"
 2. **$RENEWED_DOMAINS** which contains a space delimited list of the certificate’s domains and subdomains.
 
